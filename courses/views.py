@@ -15,6 +15,14 @@ def course_list(request):
 
 
 @login_required
+def course_detail(request, pk):
+
+    course = get_object_or_404(Course, pk=pk, user=request.user)
+
+    return render(request, "courses/detail.html", {"course": course})
+
+
+@login_required
 def course_create(request):
 
     if request.method == "POST":
@@ -25,6 +33,7 @@ def course_create(request):
 
             course = form.save(commit=False)
 
+            # درس متعلق به کاربر فعلی
             course.user = request.user
 
             course.save()
@@ -53,7 +62,7 @@ def course_update(request, pk):
 
             form.save()
 
-            messages.success(request, "درس ویرایش شد.")
+            messages.success(request, "درس با موفقیت ویرایش شد.")
 
             return redirect("courses:list")
 
@@ -73,8 +82,8 @@ def course_delete(request, pk):
 
         course.delete()
 
-        messages.success(request, "درس حذف شد.")
+        messages.success(request, "درس با موفقیت حذف شد.")
 
         return redirect("courses:list")
 
-    return render(request, "courses/detail.html", {"course": course})
+    return render(request, "courses/delete.html", {"course": course})

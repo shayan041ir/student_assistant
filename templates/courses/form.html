@@ -1,67 +1,109 @@
 {% extends "base.html" %}
 
+
 {% block title %}
 {{ title }}
 {% endblock %}
+
 
 {% block content %}
 
 <div class="row justify-content-center">
 
-    <div class="col-md-7">
+    <div class="col-md-8 col-lg-6">
 
         <div class="card shadow-sm">
 
-            <div class="card-body">
+            <div class="card-header">
 
-                <h3 class="mb-4">
+                <h4 class="mb-0">
+
+                    <i class="bi bi-book"></i>
+
                     {{ title }}
-                </h3>
+
+                </h4>
+
+            </div>
+
+
+            <div class="card-body">
 
                 <form method="post">
 
                     {% csrf_token %}
+
+
+                    {% if form.non_field_errors %}
+
+                        <div class="alert alert-danger">
+
+                            {{ form.non_field_errors }}
+
+                        </div>
+
+                    {% endif %}
+
 
                     {% for field in form %}
 
                         <div class="mb-3">
 
                             <label class="form-label">
+
                                 {{ field.label }}
+
                             </label>
 
                             {{ field }}
 
-                            {% if field.errors %}
 
-                                <div class="text-danger small">
+                            {% if field.help_text %}
 
-                                    {{ field.errors }}
+                                <div class="form-text">
+
+                                    {{ field.help_text }}
 
                                 </div>
 
                             {% endif %}
+
+
+                            {% for error in field.errors %}
+
+                                <div class="text-danger small mt-1">
+
+                                    {{ error }}
+
+                                </div>
+
+                            {% endfor %}
 
                         </div>
 
                     {% endfor %}
 
 
-                    <button
-                        type="submit"
-                        class="btn btn-primary">
+                    <div class="d-flex justify-content-between">
 
-                        ذخیره
+                        <a href="{% url 'courses:list' %}"
+                           class="btn btn-secondary">
 
-                    </button>
+                            انصراف
 
-                    <a
-                        href="{% url 'courses:list' %}"
-                        class="btn btn-secondary">
+                        </a>
 
-                        بازگشت
 
-                    </a>
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-check-lg"></i>
+
+                            ذخیره
+
+                        </button>
+
+                    </div>
 
                 </form>
 

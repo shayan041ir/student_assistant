@@ -1,58 +1,168 @@
 {% extends "base.html" %}
 
+
 {% block title %}
-حذف درس
+{{ course.name }}
 {% endblock %}
+
 
 {% block content %}
 
-<div class="row justify-content-center">
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-    <div class="col-md-6">
+    <div>
 
-        <div class="card shadow-sm">
+        <h2>
 
-            <div class="card-body text-center">
+            <i class="bi bi-book"></i>
 
-                <h4>
-                    حذف درس
-                </h4>
+            {{ course.name }}
 
-                <p class="my-4">
+        </h2>
 
-                    آیا مطمئن هستید که می‌خواهید
+        <p class="text-muted mb-0">
+            جزئیات درس
+        </p>
 
-                    <strong>
+    </div>
+
+
+    <a href="{% url 'courses:list' %}"
+       class="btn btn-secondary">
+
+        بازگشت
+
+    </a>
+
+</div>
+
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <div class="row g-4">
+
+
+            <div class="col-md-6">
+
+                <div class="border rounded p-3">
+
+                    <small class="text-muted">
+                        نام درس
+                    </small>
+
+                    <h5 class="mb-0 mt-1">
                         {{ course.name }}
-                    </strong>
+                    </h5>
 
-                    را حذف کنید؟
-
-                </p>
-
-                <form method="post">
-
-                    {% csrf_token %}
-
-                    <button
-                        type="submit"
-                        class="btn btn-danger">
-
-                        بله، حذف شود
-
-                    </button>
-
-                    <a
-                        href="{% url 'courses:list' %}"
-                        class="btn btn-secondary">
-
-                        انصراف
-
-                    </a>
-
-                </form>
+                </div>
 
             </div>
+
+
+            <div class="col-md-6">
+
+                <div class="border rounded p-3">
+
+                    <small class="text-muted">
+                        استاد
+                    </small>
+
+                    <h5 class="mb-0 mt-1">
+
+                        {{ course.teacher|default:"ثبت نشده" }}
+
+                    </h5>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="border rounded p-3">
+
+                    <small class="text-muted">
+                        تعداد واحد
+                    </small>
+
+                    <h5 class="mb-0 mt-1">
+
+                        {{ course.units }}
+
+                    </h5>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="border rounded p-3">
+
+                    <small class="text-muted">
+                        سطح سختی
+                    </small>
+
+                    <h5 class="mb-0 mt-1">
+
+                        {{ course.difficulty|default:"ثبت نشده" }}/10
+
+                    </h5>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="border rounded p-3">
+
+                    <small class="text-muted">
+                        تاریخ امتحان
+                    </small>
+
+                    <h5 class="mb-0 mt-1">
+
+                        {{ course.exam_date|default:"ثبت نشده" }}
+
+                    </h5>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card-footer bg-white">
+
+        <div class="d-flex gap-2">
+
+            <a href="{% url 'courses:update' course.pk %}"
+               class="btn btn-primary">
+
+                <i class="bi bi-pencil"></i>
+
+                ویرایش
+
+            </a>
+
+
+            <a href="{% url 'courses:delete' course.pk %}"
+               class="btn btn-outline-danger">
+
+                <i class="bi bi-trash"></i>
+
+                حذف
+
+            </a>
 
         </div>
 
