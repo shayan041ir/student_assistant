@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ note.title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+
+    <div class="card-body p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+
+                <h2>
+                    {{ note.title }}
+                </h2>
+
+                {% if note.course %}
+
+                    <span class="badge bg-primary">
+
+                        {{ note.course.name }}
+
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="d-flex gap-2">
+
+                <a
+                    href="{% url 'notes:update' note.pk %}"
+                    class="btn btn-warning">
+
+                    ویرایش
+
+                </a>
+
+                <a
+                    href="{% url 'notes:delete' note.pk %}"
+                    class="btn btn-danger">
+
+                    حذف
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <hr>
+
+
+        <div class="mt-4">
+
+            {{ note.content|linebreaks }}
+
+        </div>
+
+
+        <hr>
+
+
+        <small class="text-muted">
+
+            ایجاد شده در:
+            {{ note.created_at|date:"Y/m/d H:i" }}
+
+        </small>
+
+    </div>
+
+</div>
+
+{% endblock %}

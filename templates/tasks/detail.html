@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+{{ task.title }}
+{% endblock %}
+
+
+{% block content %}
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-start">
+
+            <div>
+
+                <h2>
+                    {{ task.title }}
+                </h2>
+
+                <p class="text-muted">
+
+                    {{ task.course.name }}
+
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <a href="{% url 'tasks:update' task.pk %}" class="btn btn-warning">
+
+                    <i class="bi bi-pencil"></i>
+
+                    ویرایش
+
+                </a>
+
+
+                <a href="{% url 'tasks:delete' task.pk %}" class="btn btn-danger">
+
+                    <i class="bi bi-trash"></i>
+
+                    حذف
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <hr>
+
+
+        {% if task.description %}
+
+        <h5>
+            توضیحات
+        </h5>
+
+        <p>
+            {{ task.description|linebreaks }}
+        </p>
+
+        {% endif %}
+
+
+        <div class="row mt-4">
+
+            <div class="col-md-4">
+
+                <strong>
+                    تاریخ تحویل:
+                </strong>
+
+                <br>
+
+                {{ task.due_date|default:"بدون تاریخ" }}
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <strong>
+                    وضعیت:
+                </strong>
+
+                <br>
+
+                {% if task.is_completed %}
+
+                <span class="badge bg-success">
+                    انجام شده
+                </span>
+
+                {% else %}
+
+                <span class="badge bg-warning text-dark">
+                    انجام نشده
+                </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
