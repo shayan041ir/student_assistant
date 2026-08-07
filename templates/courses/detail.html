@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+حذف درس
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-6">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body text-center">
+
+                <h4>
+                    حذف درس
+                </h4>
+
+                <p class="my-4">
+
+                    آیا مطمئن هستید که می‌خواهید
+
+                    <strong>
+                        {{ course.name }}
+                    </strong>
+
+                    را حذف کنید؟
+
+                </p>
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger">
+
+                        بله، حذف شود
+
+                    </button>
+
+                    <a
+                        href="{% url 'courses:list' %}"
+                        class="btn btn-secondary">
+
+                        انصراف
+
+                    </a>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
