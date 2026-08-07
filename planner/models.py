@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from courses.models import Course
+
+
 class StudyPlan(models.Model):
 
     user = models.ForeignKey(
@@ -14,6 +17,10 @@ class StudyPlan(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self):
+        return f"{self.user.username} - {self.date}"
+
 
 class StudySession(models.Model):
 
@@ -41,6 +48,10 @@ class StudySession(models.Model):
         default=False
     )
 
+    def __str__(self):
+        return f"{self.course.name} - {self.start_time}"
+
+
 class Feedback(models.Model):
 
     session = models.OneToOneField(
@@ -62,3 +73,6 @@ class Feedback(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self):
+        return f"Feedback - {self.session}"

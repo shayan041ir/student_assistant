@@ -1,21 +1,27 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Course(models.Model):
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="courses"
     )
 
-    name = models.CharField(max_length=150)
+    name = models.CharField(
+        max_length=150
+    )
 
     teacher = models.CharField(
         max_length=150,
         blank=True
     )
 
-    units = models.PositiveIntegerField(default=1)
+    units = models.PositiveIntegerField(
+        default=1
+    )
 
     difficulty = models.PositiveIntegerField(
         default=5
@@ -29,3 +35,6 @@ class Course(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self):
+        return self.name

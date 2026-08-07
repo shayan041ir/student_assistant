@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from models import Note
+
+from notes.models import Note
 
 
 class AIHistory(models.Model):
@@ -24,3 +25,6 @@ class AIHistory(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self):
+        return f"{self.user.username} - {self.created_at}"

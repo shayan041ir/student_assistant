@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from courses.models import Course
+
+
 class Note(models.Model):
 
     user = models.ForeignKey(
@@ -30,3 +33,6 @@ class Note(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True
     )
+
+    def __str__(self):
+        return self.title
