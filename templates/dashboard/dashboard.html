@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}
+داشبورد
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2>
+            سلام {{ user.username }} 👋
+        </h2>
+
+        <p class="text-muted">
+            به دستیار دانشجوی خودت خوش آمدی.
+        </p>
+
+    </div>
+
+</div>
+
+
+<div class="row g-4 mb-4">
+
+    <div class="col-md-4">
+
+        <div class="card shadow-sm dashboard-card">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between">
+
+                    <div>
+
+                        <p class="text-muted mb-1">
+                            درس‌ها
+                        </p>
+
+                        <h2>
+                            {{ courses_count }}
+                        </h2>
+
+                    </div>
+
+                    <i class="bi bi-book fs-1 text-primary"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-4">
+
+        <div class="card shadow-sm dashboard-card">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between">
+
+                    <div>
+
+                        <p class="text-muted mb-1">
+                            نوت‌ها
+                        </p>
+
+                        <h2>
+                            {{ notes_count }}
+                        </h2>
+
+                    </div>
+
+                    <i class="bi bi-journal-text fs-1 text-success"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-4">
+
+        <div class="card shadow-sm dashboard-card">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between">
+
+                    <div>
+
+                        <p class="text-muted mb-1">
+                            تکالیف
+                        </p>
+
+                        <h2>
+                            {{ tasks_count }}
+                        </h2>
+
+                    </div>
+
+                    <i class="bi bi-check2-square fs-1 text-warning"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <h5 class="mb-4">
+            تکالیف پیش رو
+        </h5>
+
+        {% if pending_tasks %}
+
+            <div class="list-group">
+
+                {% for task in pending_tasks %}
+
+                    <div class="list-group-item">
+
+                        <div class="d-flex justify-content-between">
+
+                            <strong>
+                                {{ task.title }}
+                            </strong>
+
+                            <span class="text-muted">
+                                {{ task.due_date|default:"بدون تاریخ" }}
+                            </span>
+
+                        </div>
+
+                        <small class="text-muted">
+                            {{ task.course.name }}
+                        </small>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-success mb-0">
+                فعلاً تکلیف عقب‌افتاده‌ای نداری 🎉
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
