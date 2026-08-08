@@ -10,19 +10,12 @@ from .forms import TaskForm
 def task_list(request):
 
     tasks = (
-        Task.objects
-        .filter(user=request.user)
+        Task.objects.filter(user=request.user)
         .select_related("course")
-        .order_by("-created_at")
+        .order_by("due_date", "-created_at")
     )
 
-    return render(
-        request,
-        "tasks/list.html",
-        {
-            "tasks": tasks
-        }
-    )
+    return render(request, "tasks/list.html", {"tasks": tasks})
 
 
 @login_required
@@ -43,10 +36,7 @@ def task_create(request):
 
             task.save()
 
-            messages.success(
-                request,
-                "تکلیف با موفقیت ایجاد شد."
-            )
+            messages.success(request, "تکلیف با موفقیت ایجاد شد.")
 
             return redirect("tasks:list")
 
@@ -56,49 +46,25 @@ def task_create(request):
 
         form.fields["course"].queryset = request.user.courses.all()
 
-    return render(
-        request,
-        "tasks/form.html",
-        {
-            "form": form,
-            "title": "افزودن تکلیف"
-        }
-    )
+    return render(request, "tasks/form.html", {"form": form, "title": "افزودن تکلیف"})
 
 
 @login_required
 def task_detail(request, pk):
 
-    task = get_object_or_404(
-        Task,
-        pk=pk,
-        user=request.user
-    )
+    task = get_object_or_404(Task, pk=pk, user=request.user)
 
-    return render(
-        request,
-        "tasks/detail.html",
-        {
-            "task": task
-        }
-    )
+    return render(request, "tasks/detail.html", {"task": task})
 
 
 @login_required
 def task_update(request, pk):
 
-    task = get_object_or_404(
-        Task,
-        pk=pk,
-        user=request.user
-    )
+    task = get_object_or_404(Task, pk=pk, user=request.user)
 
     if request.method == "POST":
 
-        form = TaskForm(
-            request.POST,
-            instance=task
-        )
+        form = TaskForm(request.POST, instance=task)
 
         form.fields["course"].queryset = request.user.courses.all()
 
@@ -106,10 +72,7 @@ def task_update(request, pk):
 
             form.save()
 
-            messages.success(
-                request,
-                "تکلیف با موفقیت ویرایش شد."
-            )
+            messages.success(request, "تکلیف با موفقیت ویرایش شد.")
 
             return redirect("tasks:list")
 
@@ -119,41 +82,20 @@ def task_update(request, pk):
 
         form.fields["course"].queryset = request.user.courses.all()
 
-    return render(
-        request,
-        "tasks/form.html",
-        {
-            "form": form,
-            "title": "ویرایش تکلیف"
-        }
-    )
+    return render(request, "tasks/form.html", {"form": form, "title": "ویرایش تکلیف"})
 
 
 @login_required
 def task_delete(request, pk):
 
-    task = get_object_or_404(
-        Task,
-        pk=pk,
-        user=request.user
-    )
+    task = get_object_or_404(Task, pk=pk, user=request.user)
 
     if request.method == "POST":
 
         task.delete()
 
-        messages.success(
-            request,
-            "تکلیف با موفقیت حذف شد."
-        )
+        messages.success(request, "تکلیف با موفقیت حذف شد.")
 
         return redirect("tasks:list")
 
-    return render(
-        request,
-        "tasks/delete.html",
-        {
-            "task": task
-        }
-    )
-
+    return render(request, "tasks/delete.html", {"task": task})

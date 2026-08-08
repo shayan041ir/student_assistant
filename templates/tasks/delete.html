@@ -24,7 +24,7 @@
                 </h4>
 
 
-                <p>
+                <p class="text-muted">
 
                     آیا مطمئن هستید که می‌خواهید تکلیف
 
@@ -44,12 +44,14 @@
 
                     <button type="submit" class="btn btn-danger">
 
-                        بله، حذف کن
+                        <i class="bi bi-trash"></i>
+
+                        بله، حذف شود
 
                     </button>
 
 
-                    <a href="{% url 'tasks:list' %}" class="btn btn-secondary">
+                    <a href="{% url 'tasks:detail' task.pk %}" class="btn btn-secondary">
 
                         انصراف
 
