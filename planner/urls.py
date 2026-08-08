@@ -14,4 +14,5 @@ urlpatterns = [
     path("availability/", views.availability_list, name="availability_list"),
     path("availability/create/", views.availability_create, name="availability_create"),
     path("<int:pk>/feedback/", views.create_feedback, name="feedback_create"),
+    path("generate/", views.generate_plan, name="generate_plan"),
 ]

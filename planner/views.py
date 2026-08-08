@@ -193,3 +193,26 @@ def create_feedback(request, pk):
             "session": session,
         },
     )
+
+
+@login_required
+def generate_plan(request):
+
+    if request.method != "POST":
+        return redirect("planner:index")
+
+    from .services.planner import StudyPlanner
+
+    planner = StudyPlanner(request.user)
+
+    sessions = planner.generate_weekly_plan()
+
+    if sessions:
+
+        messages.success(request, f"{len(sessions)} جلسه مطالعه برای هفته ایجاد شد.")
+
+    else:
+
+        messages.warning(request, "امکان ایجاد برنامه مطالعه وجود نداشت.")
+
+    return redirect("planner:index")

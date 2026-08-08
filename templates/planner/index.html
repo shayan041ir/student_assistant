@@ -31,6 +31,16 @@
 
     </a>
 
+    <form method="post" action="{% url 'planner:generate_plan' %}" class="mb-4">
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-magic"></i>
+
+            ساخت برنامه هوشمند
+        </button>
+    </form>
+
 </div>
 
 
@@ -113,7 +123,7 @@
                 </p>
 
                 {% endif %}
-                
+
                 <hr>
 
                 {% if session.status == "completed" %}

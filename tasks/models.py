@@ -5,8 +5,8 @@ from courses.models import Course
 class Task(models.Model):
 
     STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("completed", "Completed"),
+        ("pending", "در انتظار"),
+        ("completed", "انجام شده"),
     ]
 
     user = models.ForeignKey(
@@ -43,3 +43,6 @@ class Task(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self):
+        return self.title
