@@ -113,6 +113,27 @@
                 </p>
 
                 {% endif %}
+                
+                <hr>
+
+                {% if session.status == "completed" %}
+
+                {% if session.feedback %}
+
+                <span class="badge bg-success">
+                    بازخورد ثبت شده
+                </span>
+
+                {% else %}
+
+                <a href="{% url 'planner:feedback_create' session.pk %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-chat-square-text"></i>
+                    ثبت بازخورد
+                </a>
+
+                {% endif %}
+
+                {% endif %}
 
 
                 <div class="d-flex gap-2 mt-3">

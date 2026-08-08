@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}
+ثبت بازخورد جلسه
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body">
+
+                <h3 class="mb-2">
+                    ثبت بازخورد جلسه
+                </h3>
+
+                <p class="text-muted mb-4">
+                    {{ session.title }}
+                </p>
+
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            آمادگی ذهنی
+                        </label>
+
+                        {{ form.mental_readiness }}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            میزان رضایت
+                        </label>
+
+                        {{ form.satisfaction }}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            میزان تمرکز
+                        </label>
+
+                        {{ form.focus_level }}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            سختی جلسه
+                        </label>
+
+                        {{ form.difficulty }}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            توضیحات
+                        </label>
+
+                        {{ form.notes }}
+
+                    </div>
+
+
+                    {% if form.errors %}
+
+                    <div class="alert alert-danger">
+
+                        {{ form.errors }}
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <div class="d-flex gap-2">
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i>
+                            ثبت بازخورد
+                        </button>
+
+
+                        <a href="{% url 'planner:index' %}" class="btn btn-secondary">
+                            بازگشت
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
