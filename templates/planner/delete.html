@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+حذف جلسه مطالعه
+{% endblock %}
+
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-6">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body text-center">
+
+                <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
+
+                <h4 class="mt-3">
+                    حذف جلسه مطالعه
+                </h4>
+
+                <p class="text-muted">
+
+                    آیا مطمئنی که می‌خواهی این جلسه را حذف کنی؟
+
+                </p>
+
+
+                <div class="alert alert-light">
+
+                    <strong>
+                        {{ session.title }}
+                    </strong>
+
+                    <br>
+
+                    {{ session.course.name }}
+
+                    <br>
+
+                    {{ session.date }}
+
+                </div>
+
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+                    <button type="submit" class="btn btn-danger">
+
+                        <i class="bi bi-trash"></i>
+
+                        حذف
+
+                    </button>
+
+
+                    <a href="{% url 'planner:index' %}" class="btn btn-secondary">
+
+                        انصراف
+
+                    </a>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
