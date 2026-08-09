@@ -1,6 +1,10 @@
 from django import forms
 
-from .models import StudySession, Availability, StudyFeedback
+from .models import (
+    Availability,
+    StudyFeedback,
+    StudySession,
+)
 
 
 class StudySessionForm(forms.ModelForm):
@@ -19,9 +23,16 @@ class StudySessionForm(forms.ModelForm):
         ]
 
         widgets = {
-            "course": forms.Select(attrs={"class": "form-select"}),
+            "course": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
             "title": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "عنوان جلسه مطالعه"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "عنوان جلسه مطالعه",
+                }
             ),
             "description": forms.Textarea(
                 attrs={
@@ -30,12 +41,23 @@ class StudySessionForm(forms.ModelForm):
                     "placeholder": "توضیحات جلسه مطالعه...",
                 }
             ),
-            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "date": forms.DateInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                }
+            ),
             "start_time": forms.TimeInput(
-                attrs={"class": "form-control", "type": "time"}
+                attrs={
+                    "class": "form-control",
+                    "type": "time",
+                }
             ),
             "end_time": forms.TimeInput(
-                attrs={"class": "form-control", "type": "time"}
+                attrs={
+                    "class": "form-control",
+                    "type": "time",
+                }
             ),
         }
 
@@ -44,6 +66,7 @@ class StudySessionForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         start_time = cleaned_data.get("start_time")
+
         end_time = cleaned_data.get("end_time")
 
         if start_time and end_time:
@@ -68,12 +91,22 @@ class AvailabilityForm(forms.ModelForm):
         ]
 
         widgets = {
-            "weekday": forms.Select(attrs={"class": "form-select"}),
+            "weekday": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
             "start_time": forms.TimeInput(
-                attrs={"class": "form-control", "type": "time"}
+                attrs={
+                    "class": "form-control",
+                    "type": "time",
+                }
             ),
             "end_time": forms.TimeInput(
-                attrs={"class": "form-control", "type": "time"}
+                attrs={
+                    "class": "form-control",
+                    "type": "time",
+                }
             ),
         }
 
@@ -82,6 +115,7 @@ class AvailabilityForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         start_time = cleaned_data.get("start_time")
+
         end_time = cleaned_data.get("end_time")
 
         if start_time and end_time:
@@ -108,15 +142,31 @@ class StudyFeedbackForm(forms.ModelForm):
         ]
 
         widgets = {
-            "mental_readiness": forms.Select(attrs={"class": "form-select"}),
-            "satisfaction": forms.Select(attrs={"class": "form-select"}),
-            "focus_level": forms.Select(attrs={"class": "form-select"}),
-            "difficulty": forms.Select(attrs={"class": "form-select"}),
+            "mental_readiness": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+            "satisfaction": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+            "focus_level": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+            "difficulty": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
             "notes": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 4,
-                    "placeholder": "توضیحات خود را درباره این جلسه بنویسید...",
+                    "placeholder": ("توضیحات خود را درباره این جلسه بنویسید..."),
                 }
             ),
         }

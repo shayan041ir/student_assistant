@@ -1,210 +1,193 @@
-from collections import defaultdict
+def get_course_feedbacks(course):
+    """
+    دریافت تمام Feedbackهای ثبت‌شده برای یک درس.
+    """
 
-from django.db.models import Avg
+    sessions = course.study_sessions.filter(feedback__isnull=False).select_related(
+        "feedback"
+    )
 
-from ..models import StudyFeedback
+    return [session.feedback for session in sessions]
 
 
-class FeedbackAnalyzer:
+def get_user_feedbacks(user):
+    """
+    دریافت تمام Feedbackهای کاربر.
+    """
 
-    def __init__(self, user):
-        self.user = user
+    sessions = user.study_sessions.filter(feedback__isnull=False).select_related(
+        "feedback"
+    )
 
-    def get_feedbacks(self):
-        return (
-            StudyFeedback.objects
-            .filter(session__user=self.user)
-            .select_related(
-                "session",
-                "session__course",
-            )
-        )
+    return [session.feedback for session in sessions]
 
-    def get_average_readiness(self):
-        result = self.get_feedbacks().aggregate(
-            average=Avg("mental_readiness")
-        )
 
-        return round(result["average"] or 0, 2)
+def calculate_feedback_average(feedbacks, field):
+    """
+    محاسبه میانگین یک فیلد Feedback.
+    """
 
-    def get_average_focus(self):
-        result = self.get_feedbacks().aggregate(
-            average=Avg("focus_level")
-        )
+    if not feedbacks:
+        return 0
 
-        return round(result["average"] or 0, 2)
+    total = sum(getattr(feedback, field) for feedback in feedbacks)
 
-    def get_average_satisfaction(self):
-        result = self.get_feedbacks().aggregate(
-            average=Avg("satisfaction")
-        )
+    return round(total / len(feedbacks), 2)
 
-        return round(result["average"] or 0, 2)
 
-    def get_average_difficulty(self):
-        result = self.get_feedbacks().aggregate(
-            average=Avg("difficulty")
-        )
+def get_course_feedback_analysis(course):
+    """
+    تحلیل عملکرد کاربر در یک درس.
+    """
 
-        return round(result["average"] or 0, 2)
+    feedbacks = get_course_feedbacks(course)
 
-    def get_hourly_readiness(self):
-
-        data = defaultdict(list)
-
-        for feedback in self.get_feedbacks():
-
-            hour = feedback.session.start_time.hour
-
-            data[hour].append(
-                feedback.mental_readiness
-            )
-
-        result = {}
-
-        for hour, values in data.items():
-
-            result[hour] = round(
-                sum(values) / len(values),
-                2
-            )
-
-        return dict(sorted(result.items()))
-
-    def get_weekday_readiness(self):
-
-        data = defaultdict(list)
-
-        for feedback in self.get_feedbacks():
-
-            weekday = feedback.session.date.weekday()
-
-            data[weekday].append(
-                feedback.mental_readiness
-            )
-
-        result = {}
-
-        for weekday, values in data.items():
-
-            result[weekday] = round(
-                sum(values) / len(values),
-                2
-            )
-
-        return dict(sorted(result.items()))
-
-    def get_best_study_hours(self):
-
-        hourly = self.get_hourly_readiness()
-
-        if not hourly:
-            return []
-
-        return sorted(
-            hourly,
-            key=hourly.get,
-            reverse=True
-        )
-
-    def get_best_weekdays(self):
-
-        weekday_data = self.get_weekday_readiness()
-
-        if not weekday_data:
-            return []
-
-        return sorted(
-            weekday_data,
-            key=weekday_data.get,
-            reverse=True
-        )
-
-    def get_course_analysis(self):
-
-        data = defaultdict(list)
-
-        for feedback in self.get_feedbacks():
-
-            course_id = feedback.session.course_id
-
-            score = (
-                feedback.mental_readiness
-                + feedback.focus_level
-                + feedback.satisfaction
-            ) / 3
-
-            data[course_id].append(score)
-
-        result = {}
-
-        for course_id, values in data.items():
-
-            result[course_id] = round(
-                sum(values) / len(values),
-                2
-            )
-
-        return result
-
-    def get_course_need_scores(self):
-
-        analysis = self.get_course_analysis()
-
-        result = {}
-
-        for course_id, average in analysis.items():
-
-            need_score = 6 - average
-
-            result[course_id] = round(
-                max(
-                    1,
-                    min(
-                        10,
-                        need_score * 2
-                    )
-                ),
-                2
-            )
-
-        return result
-
-    def get_hour_score(self, hour):
-
-        hourly = self.get_hourly_readiness()
-
-        if not hourly:
-            return 5
-
-        if hour not in hourly:
-            return 5
-
-        return hourly[hour]
-
-    def get_weekday_score(self, weekday):
-
-        weekday_data = self.get_weekday_readiness()
-
-        if not weekday_data:
-            return 5
-
-        if weekday not in weekday_data:
-            return 5
-
-        return weekday_data[weekday]
-
-    def get_summary(self):
-
+    if not feedbacks:
         return {
-            "average_readiness": self.get_average_readiness(),
-            "average_focus": self.get_average_focus(),
-            "average_satisfaction": self.get_average_satisfaction(),
-            "average_difficulty": self.get_average_difficulty(),
-            "best_hours": self.get_best_study_hours(),
-            "best_weekdays": self.get_best_weekdays(),
-            "hourly_readiness": self.get_hourly_readiness(),
-            "weekday_readiness": self.get_weekday_readiness(),
-            "course_analysis": self.get_course_analysis(),
-            "course_need_scores": self.get_course_need_scores(),
+            "count": 0,
+            "average_readiness": 0,
+            "average_satisfaction": 0,
+            "average_focus": 0,
+            "average_difficulty": 0,
         }
+
+    return {
+        "count": len(feedbacks),
+        "average_readiness": calculate_feedback_average(
+            feedbacks,
+            "mental_readiness",
+        ),
+        "average_satisfaction": calculate_feedback_average(
+            feedbacks,
+            "satisfaction",
+        ),
+        "average_focus": calculate_feedback_average(
+            feedbacks,
+            "focus_level",
+        ),
+        "average_difficulty": calculate_feedback_average(
+            feedbacks,
+            "difficulty",
+        ),
+    }
+
+
+def get_user_feedback_analysis(user):
+    """
+    تحلیل کلی عملکرد کاربر.
+    """
+
+    feedbacks = get_user_feedbacks(user)
+
+    if not feedbacks:
+        return {
+            "count": 0,
+            "average_readiness": 0,
+            "average_satisfaction": 0,
+            "average_focus": 0,
+            "average_difficulty": 0,
+        }
+
+    return {
+        "count": len(feedbacks),
+        "average_readiness": calculate_feedback_average(
+            feedbacks,
+            "mental_readiness",
+        ),
+        "average_satisfaction": calculate_feedback_average(
+            feedbacks,
+            "satisfaction",
+        ),
+        "average_focus": calculate_feedback_average(
+            feedbacks,
+            "focus_level",
+        ),
+        "average_difficulty": calculate_feedback_average(
+            feedbacks,
+            "difficulty",
+        ),
+    }
+
+
+def get_best_study_hours(user):
+    """
+    پیدا کردن بهترین ساعت‌های مطالعه
+    بر اساس Focus.
+    """
+
+    sessions = user.study_sessions.filter(feedback__isnull=False).select_related(
+        "feedback"
+    )
+
+    hour_scores = {}
+
+    for session in sessions:
+
+        hour = session.start_time.hour
+
+        hour_scores.setdefault(hour, [])
+
+        hour_scores[hour].append(session.feedback.focus_level)
+
+    results = []
+
+    for hour, scores in hour_scores.items():
+
+        average = sum(scores) / len(scores)
+
+        results.append(
+            {
+                "hour": hour,
+                "average_focus": round(average, 2),
+                "sessions": len(scores),
+            }
+        )
+
+    results.sort(
+        key=lambda item: item["average_focus"],
+        reverse=True,
+    )
+
+    return results
+
+
+def get_best_weekdays(user):
+    """
+    پیدا کردن بهترین روزهای هفته
+    بر اساس Focus.
+    """
+
+    sessions = user.study_sessions.filter(feedback__isnull=False).select_related(
+        "feedback"
+    )
+
+    weekday_scores = {}
+
+    for session in sessions:
+
+        weekday = session.date.weekday()
+
+        weekday_scores.setdefault(weekday, [])
+
+        weekday_scores[weekday].append(session.feedback.focus_level)
+
+    results = []
+
+    for weekday, scores in weekday_scores.items():
+
+        average = sum(scores) / len(scores)
+
+        results.append(
+            {
+                "weekday": weekday,
+                "average_focus": round(average, 2),
+                "sessions": len(scores),
+            }
+        )
+
+    results.sort(
+        key=lambda item: item["average_focus"],
+        reverse=True,
+    )
+
+    return results

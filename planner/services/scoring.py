@@ -1,126 +1,137 @@
 from django.utils import timezone
 
-from tasks.models import Task
 
-from .utils import calculate_days_until
-
-
-def exam_urgency_score(course):
+def calculate_exam_score(course):
+    """
+    محاسبه امتیاز بر اساس نزدیک بودن امتحان.
+    """
 
     if not course.exam_date:
         return 0
 
     today = timezone.localdate()
 
-    days_left = calculate_days_until(course.exam_date, today)
+    days_remaining = (course.exam_date - today).days
 
-    if days_left < 0:
+    if days_remaining < 0:
         return 0
 
-    if days_left == 0:
+    if days_remaining == 0:
+        return 50
+
+    if days_remaining <= 3:
+        return 40
+
+    if days_remaining <= 7:
+        return 30
+
+    if days_remaining <= 14:
+        return 20
+
+    if days_remaining <= 30:
         return 10
 
-    if days_left <= 3:
-        return 9
-
-    if days_left <= 7:
-        return 8
-
-    if days_left <= 14:
-        return 6
-
-    if days_left <= 30:
-        return 4
-
-    return 2
+    return 5
 
 
-def difficulty_score(course):
+def calculate_difficulty_score(course):
+    """
+    محاسبه امتیاز سختی درس.
+    """
 
-    difficulty = course.difficulty or 5
+    difficulty = course.difficulty or 1
 
-    return min(10, max(0, difficulty))
-
-
-def task_urgency_score(course):
-
-    today = timezone.localdate()
-
-    tasks = Task.objects.filter(user=course.user, course=course, status="pending")
-
-    if not tasks.exists():
-        return 0
-
-    highest_score = 0
-
-    for task in tasks:
-
-        if not task.due_date:
-
-            score = 2
-
-        else:
-
-            days_left = (task.due_date - today).days
-
-            if days_left <= 0:
-                score = 10
-
-            elif days_left <= 2:
-                score = 9
-
-            elif days_left <= 7:
-                score = 7
-
-            elif days_left <= 14:
-                score = 4
-
-            else:
-                score = 2
-
-        highest_score = max(highest_score, score)
-
-    return highest_score
+    return min(difficulty * 3, 30)
 
 
-def calculate_course_priority(course, feedback_score=5):
+def calculate_task_score(course):
+    """
+    محاسبه امتیاز بر اساس تعداد تکالیف باز.
+    """
 
-    exam_score = exam_urgency_score(course)
+    pending_tasks = course.tasks.filter(status="pending").count()
 
-    difficulty = difficulty_score(course)
+    return min(pending_tasks * 5, 25)
 
-    task_score = task_urgency_score(course)
 
-    final_score = (
-        exam_score * 0.40
-        + difficulty * 0.25
-        + task_score * 0.20
-        + feedback_score * 0.15
+def calculate_feedback_score(course):
+    """
+    تحلیل Feedbackهای قبلی درس.
+
+    تمرکز پایین:
+        نیاز بیشتر به مطالعه
+
+    آمادگی پایین:
+        نیاز بیشتر به مطالعه
+
+    سختی بالا:
+        نیاز بیشتر به مطالعه
+    """
+
+    feedbacks = []
+
+    sessions = course.study_sessions.filter(feedback__isnull=False).select_related(
+        "feedback"
     )
 
-    return round(final_score, 2)
+    for session in sessions:
+        feedbacks.append(session.feedback)
+
+    if not feedbacks:
+        return 0
+
+    total = 0
+
+    for feedback in feedbacks:
+
+        if feedback.mental_readiness <= 2:
+            total += 5
+
+        if feedback.focus_level <= 2:
+            total += 5
+
+        if feedback.difficulty >= 4:
+            total += 5
+
+    return min(total, 25)
 
 
-def rank_courses(courses, feedback_scores=None):
+def calculate_course_score(course):
+    """
+    محاسبه امتیاز نهایی یک درس.
+    """
 
-    if feedback_scores is None:
-        feedback_scores = {}
+    exam_score = calculate_exam_score(course)
 
-    ranked = []
+    difficulty_score = calculate_difficulty_score(course)
 
-    for course in courses:
+    task_score = calculate_task_score(course)
 
-        feedback_score = feedback_scores.get(course.id, 5)
+    feedback_score = calculate_feedback_score(course)
 
-        score = calculate_course_priority(course, feedback_score)
+    total_score = exam_score + difficulty_score + task_score + feedback_score
 
-        ranked.append(
-            {
-                "course": course,
-                "score": score,
-            }
-        )
+    return {
+        "course": course,
+        "exam_score": exam_score,
+        "difficulty_score": difficulty_score,
+        "task_score": task_score,
+        "feedback_score": feedback_score,
+        "total_score": total_score,
+    }
 
-    ranked.sort(key=lambda item: item["score"], reverse=True)
 
-    return ranked
+def rank_courses(courses):
+    """
+    تمام درس‌ها را امتیازدهی و از بیشترین
+    اولویت به کمترین مرتب می‌کند.
+    """
+
+    results = [calculate_course_score(course) for course in courses]
+
+    results.sort(
+        key=lambda item: item["total_score"],
+        reverse=True,
+    )
+
+    return results

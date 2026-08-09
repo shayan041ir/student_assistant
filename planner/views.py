@@ -1,9 +1,25 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import (
+    render,
+    redirect,
+    get_object_or_404,
+)
 
-from .models import StudySession
-from .forms import StudySessionForm, Availability, StudyFeedbackForm, AvailabilityForm
+from .models import (
+    StudySession,
+    Availability,
+)
+
+from .forms import (
+    StudySessionForm,
+    AvailabilityForm,
+    StudyFeedbackForm,
+)
+
+from .services.planner_service import (
+    generate_weekly_plan,
+)
 
 
 @login_required
@@ -11,7 +27,13 @@ def index(request):
 
     sessions = StudySession.objects.filter(user=request.user).select_related("course")
 
-    return render(request, "planner/index.html", {"sessions": sessions})
+    return render(
+        request,
+        "planner/index.html",
+        {
+            "sessions": sessions,
+        },
+    )
 
 
 @login_required
@@ -31,7 +53,10 @@ def create_session(request):
 
             session.save()
 
-            messages.success(request, "جلسه مطالعه با موفقیت ایجاد شد.")
+            messages.success(
+                request,
+                "جلسه مطالعه با موفقیت ایجاد شد.",
+            )
 
             return redirect("planner:index")
 
@@ -42,18 +67,30 @@ def create_session(request):
         form.fields["course"].queryset = request.user.courses.all()
 
     return render(
-        request, "planner/form.html", {"form": form, "title": "افزودن جلسه مطالعه"}
+        request,
+        "planner/form.html",
+        {
+            "form": form,
+            "title": "افزودن جلسه مطالعه",
+        },
     )
 
 
 @login_required
 def update_session(request, pk):
 
-    session = get_object_or_404(StudySession, pk=pk, user=request.user)
+    session = get_object_or_404(
+        StudySession,
+        pk=pk,
+        user=request.user,
+    )
 
     if request.method == "POST":
 
-        form = StudySessionForm(request.POST, instance=session)
+        form = StudySessionForm(
+            request.POST,
+            instance=session,
+        )
 
         form.fields["course"].queryset = request.user.courses.all()
 
@@ -61,7 +98,10 @@ def update_session(request, pk):
 
             form.save()
 
-            messages.success(request, "جلسه مطالعه با موفقیت ویرایش شد.")
+            messages.success(
+                request,
+                "جلسه مطالعه با موفقیت ویرایش شد.",
+            )
 
             return redirect("planner:index")
 
@@ -72,36 +112,61 @@ def update_session(request, pk):
         form.fields["course"].queryset = request.user.courses.all()
 
     return render(
-        request, "planner/form.html", {"form": form, "title": "ویرایش جلسه مطالعه"}
+        request,
+        "planner/form.html",
+        {
+            "form": form,
+            "title": "ویرایش جلسه مطالعه",
+        },
     )
 
 
 @login_required
 def delete_session(request, pk):
 
-    session = get_object_or_404(StudySession, pk=pk, user=request.user)
+    session = get_object_or_404(
+        StudySession,
+        pk=pk,
+        user=request.user,
+    )
 
     if request.method == "POST":
 
         session.delete()
 
-        messages.success(request, "جلسه مطالعه حذف شد.")
+        messages.success(
+            request,
+            "جلسه مطالعه حذف شد.",
+        )
 
         return redirect("planner:index")
 
-    return render(request, "planner/delete.html", {"session": session})
+    return render(
+        request,
+        "planner/delete.html",
+        {
+            "session": session,
+        },
+    )
 
 
 @login_required
 def complete_session(request, pk):
 
-    session = get_object_or_404(StudySession, pk=pk, user=request.user)
+    session = get_object_or_404(
+        StudySession,
+        pk=pk,
+        user=request.user,
+    )
 
     session.status = "completed"
 
     session.save(update_fields=["status"])
 
-    messages.success(request, "جلسه مطالعه به عنوان انجام‌شده ثبت شد.")
+    messages.success(
+        request,
+        "جلسه مطالعه به عنوان انجام‌شده ثبت شد.",
+    )
 
     return redirect("planner:index")
 
@@ -112,7 +177,11 @@ def availability_list(request):
     availabilities = Availability.objects.filter(user=request.user)
 
     return render(
-        request, "planner/availability_list.html", {"availabilities": availabilities}
+        request,
+        "planner/availability_list.html",
+        {
+            "availabilities": availabilities,
+        },
     )
 
 
@@ -131,7 +200,10 @@ def availability_create(request):
 
             availability.save()
 
-            messages.success(request, "زمان آزاد با موفقیت اضافه شد.")
+            messages.success(
+                request,
+                "زمان آزاد با موفقیت اضافه شد.",
+            )
 
             return redirect("planner:availability_list")
 
@@ -142,26 +214,37 @@ def availability_create(request):
     return render(
         request,
         "planner/availability_form.html",
-        {"form": form, "title": "افزودن زمان آزاد"},
+        {
+            "form": form,
+            "title": "افزودن زمان آزاد",
+        },
     )
 
 
 @login_required
 def create_feedback(request, pk):
 
-    session = get_object_or_404(StudySession, pk=pk, user=request.user)
+    session = get_object_or_404(
+        StudySession,
+        pk=pk,
+        user=request.user,
+    )
 
     if session.status != "completed":
 
         messages.warning(
-            request, "ابتدا باید جلسه مطالعه را به عنوان انجام‌شده ثبت کنید."
+            request,
+            "ابتدا باید جلسه مطالعه را " "به عنوان انجام‌شده ثبت کنید.",
         )
 
         return redirect("planner:index")
 
     if hasattr(session, "feedback"):
 
-        messages.info(request, "برای این جلسه قبلاً بازخورد ثبت شده است.")
+        messages.info(
+            request,
+            "برای این جلسه قبلاً بازخورد ثبت شده است.",
+        )
 
         return redirect("planner:index")
 
@@ -177,7 +260,10 @@ def create_feedback(request, pk):
 
             feedback.save()
 
-            messages.success(request, "بازخورد جلسه با موفقیت ثبت شد.")
+            messages.success(
+                request,
+                "بازخورد جلسه با موفقیت ثبت شد.",
+            )
 
             return redirect("planner:index")
 
@@ -199,20 +285,31 @@ def create_feedback(request, pk):
 def generate_plan(request):
 
     if request.method != "POST":
+
         return redirect("planner:index")
 
-    from .services.planner import StudyPlanner
-
-    planner = StudyPlanner(request.user)
-
-    sessions = planner.generate_weekly_plan()
+    sessions = generate_weekly_plan(
+        user=request.user,
+        session_minutes=60,
+    )
 
     if sessions:
 
-        messages.success(request, f"{len(sessions)} جلسه مطالعه برای هفته ایجاد شد.")
+        messages.success(
+            request,
+            f"{len(sessions)} جلسه مطالعه " "با موفقیت برای شما ایجاد شد.",
+        )
 
     else:
 
-        messages.warning(request, "امکان ایجاد برنامه مطالعه وجود نداشت.")
+        messages.warning(
+            request,
+            (
+                "امکان ایجاد برنامه وجود ندارد. "
+                "ابتدا درس و زمان‌های آزاد خود "
+                "را ثبت کنید یا زمان‌های انتخاب‌شده "
+                "قبلاً برنامه‌ریزی شده‌اند."
+            ),
+        )
 
     return redirect("planner:index")
