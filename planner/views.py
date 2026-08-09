@@ -1,31 +1,34 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import (
-    render,
-    redirect,
     get_object_or_404,
-)
-
-from .models import (
-    StudySession,
-    Availability,
+    redirect,
+    render,
 )
 
 from .forms import (
-    StudySessionForm,
     AvailabilityForm,
     StudyFeedbackForm,
+    StudySessionForm,
 )
-
-from .services.planner_service import (
-    generate_weekly_plan,
+from .models import (
+    Availability,
+    StudySession,
 )
+from .services.planner_service import generate_weekly_plan
 
 
 @login_required
 def index(request):
+    """
+    صفحه اصلی برنامه مطالعه.
+    """
 
-    sessions = StudySession.objects.filter(user=request.user).select_related("course")
+    sessions = (
+        StudySession.objects.filter(user=request.user)
+        .select_related("course")
+        .order_by("date", "start_time")
+    )
 
     return render(
         request,
@@ -174,7 +177,10 @@ def complete_session(request, pk):
 @login_required
 def availability_list(request):
 
-    availabilities = Availability.objects.filter(user=request.user)
+    availabilities = Availability.objects.filter(user=request.user).order_by(
+        "weekday",
+        "start_time",
+    )
 
     return render(
         request,
@@ -234,7 +240,7 @@ def create_feedback(request, pk):
 
         messages.warning(
             request,
-            "ابتدا باید جلسه مطالعه را " "به عنوان انجام‌شده ثبت کنید.",
+            "ابتدا باید جلسه مطالعه را به عنوان انجام‌شده ثبت کنید.",
         )
 
         return redirect("planner:index")
@@ -297,19 +303,15 @@ def generate_plan(request):
 
         messages.success(
             request,
-            f"{len(sessions)} جلسه مطالعه " "با موفقیت برای شما ایجاد شد.",
+            f"{len(sessions)} جلسه مطالعه با موفقیت برای شما ایجاد شد.",
         )
 
     else:
 
         messages.warning(
             request,
-            (
-                "امکان ایجاد برنامه وجود ندارد. "
-                "ابتدا درس و زمان‌های آزاد خود "
-                "را ثبت کنید یا زمان‌های انتخاب‌شده "
-                "قبلاً برنامه‌ریزی شده‌اند."
-            ),
+            "امکان ایجاد برنامه وجود ندارد. "
+            "ابتدا درس و زمان‌های آزاد خود را ثبت کنید.",
         )
 
     return redirect("planner:index")

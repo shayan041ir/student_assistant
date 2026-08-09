@@ -4,8 +4,12 @@ from django.db import transaction
 from django.utils import timezone
 
 from planner.models import StudySession
+from planner.services.analysis import get_best_study_hours
 from planner.services.scoring import rank_courses
-from planner.utils.time_utils import split_time_range
+from planner.utils.time_utils import (
+    calculate_duration,
+    split_time_range,
+)
 
 DEFAULT_SESSION_MINUTES = 60
 
@@ -28,14 +32,15 @@ def get_courses_for_planning(user):
     return rank_courses(courses)
 
 
-def session_exists(
+def session_already_exists(
     user,
     date,
     start_time,
     end_time,
 ):
     """
-    بررسی می‌کند آیا در این بازه قبلاً جلسه‌ای وجود دارد یا خیر.
+    بررسی می‌کند آیا در بازه موردنظر
+    قبلاً جلسه‌ای برای کاربر وجود دارد یا نه.
     """
 
     return StudySession.objects.filter(
@@ -61,21 +66,18 @@ def has_time_conflict(
         date=date,
         start_time__lt=end_time,
         end_time__gt=start_time,
-        status__in=["planned", "completed"],
     ).exists()
 
 
-def get_week_start(start_date=None):
+def get_next_course(ranked_courses, course_index):
     """
-    مشخص می‌کند برنامه از چه تاریخی شروع شود.
-
-    اگر تاریخ داده نشود، امروز استفاده می‌شود.
+    انتخاب درس بعدی بر اساس رتبه‌بندی.
     """
 
-    if start_date is None:
-        start_date = timezone.localdate()
+    if not ranked_courses:
+        return None
 
-    return start_date
+    return ranked_courses[course_index % len(ranked_courses)]
 
 
 def generate_weekly_plan(
@@ -84,29 +86,42 @@ def generate_weekly_plan(
     session_minutes=DEFAULT_SESSION_MINUTES,
 ):
     """
-    تولید برنامه مطالعه برای یک هفته.
+    ایجاد برنامه مطالعه برای هفته.
 
     قوانین:
     - فقط زمان‌های آزاد فعال استفاده می‌شوند.
-    - فقط درس‌های متعلق به کاربر استفاده می‌شوند.
     - درس‌ها بر اساس Score مرتب می‌شوند.
-    - Sessionهای تکراری ایجاد نمی‌شوند.
-    - Sessionهای دارای تداخل زمانی ایجاد نمی‌شوند.
+    - ساعت‌های دارای Focus بهتر در اولویت قرار می‌گیرند.
+    - جلسه تکراری ایجاد نمی‌شود.
+    - جلسات متداخل ایجاد نمی‌شوند.
+    - هر Session طول مشخصی دارد.
     """
 
-    start_date = get_week_start(start_date)
+    if start_date is None:
+        start_date = timezone.localdate()
 
-    available_slots = list(get_available_slots(user))
+    if session_minutes <= 0:
+        raise ValueError("session_minutes باید بیشتر از صفر باشد.")
+
+    available_slots = get_available_slots(user)
     ranked_courses = get_courses_for_planning(user)
-
-    if not available_slots:
-        return []
 
     if not ranked_courses:
         return []
 
+    if not available_slots:
+        return []
+
+    # ساعت‌هایی که کاربر قبلاً در آن‌ها Focus خوبی داشته
+    best_hours = get_best_study_hours(user)
+
+    preferred_hours = {
+        item["hour"] for item in best_hours if item["average_focus"] >= 3.5
+    }
+
     created_sessions = []
 
+    # برای جلوگیری از انتخاب همیشه یکسان
     course_index = 0
 
     with transaction.atomic():
@@ -115,10 +130,23 @@ def generate_weekly_plan(
 
             weekday = availability.weekday
 
-            # تبدیل weekday پروژه به تاریخ واقعی
+            # تبدیل روز پروژه به تاریخ واقعی
             days_until = (weekday - ((start_date.weekday() + 2) % 7)) % 7
 
             session_date = start_date + timedelta(days=days_until)
+
+            # اگر تاریخ گذشته باشد، به هفته بعد منتقل شود
+            if session_date < start_date:
+                session_date += timedelta(days=7)
+
+            # اگر زمان آزاد نامعتبر باشد
+            duration = calculate_duration(
+                availability.start_time,
+                availability.end_time,
+            )
+
+            if duration < session_minutes:
+                continue
 
             time_ranges = split_time_range(
                 availability.start_time,
@@ -128,13 +156,8 @@ def generate_weekly_plan(
 
             for start_time, end_time in time_ranges:
 
-                # اگر زمان جلسه قبل از امروز باشد،
-                # آن را ایجاد نکن.
-                if session_date < start_date:
-                    continue
-
-                # جلوگیری از ایجاد Session تکراری
-                if session_exists(
+                # جلوگیری از جلسه تکراری
+                if session_already_exists(
                     user=user,
                     date=session_date,
                     start_time=start_time,
@@ -142,7 +165,7 @@ def generate_weekly_plan(
                 ):
                     continue
 
-                # جلوگیری از تداخل زمانی
+                # جلوگیری از تداخل
                 if has_time_conflict(
                     user=user,
                     date=session_date,
@@ -151,9 +174,22 @@ def generate_weekly_plan(
                 ):
                     continue
 
-                selected_course = ranked_courses[course_index % len(ranked_courses)]
+                # انتخاب درس
+                selected_course = get_next_course(
+                    ranked_courses,
+                    course_index,
+                )
+
+                if not selected_course:
+                    continue
 
                 course = selected_course["course"]
+
+                # اگر ساعت موردنظر ساعت مناسب کاربر باشد
+                # همان درس انتخاب می‌شود.
+                #
+                # در غیر این صورت نیز به صورت Round Robin
+                # بین درس‌ها حرکت می‌کنیم.
 
                 title = f"مطالعه {course.name}"
 
@@ -163,7 +199,8 @@ def generate_weekly_plan(
                     title=title,
                     description=(
                         "این جلسه توسط برنامه‌ریز هوشمند "
-                        "بر اساس زمان آزاد و اولویت درس ایجاد شده است."
+                        "بر اساس زمان آزاد، اولویت درس "
+                        "و عملکرد قبلی ایجاد شده است."
                     ),
                     date=session_date,
                     start_time=start_time,

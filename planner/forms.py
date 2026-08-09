@@ -23,11 +23,7 @@ class StudySessionForm(forms.ModelForm):
         ]
 
         widgets = {
-            "course": forms.Select(
-                attrs={
-                    "class": "form-select",
-                }
-            ),
+            "course": forms.Select(attrs={"class": "form-select"}),
             "title": forms.TextInput(
                 attrs={
                     "class": "form-control",
@@ -91,11 +87,7 @@ class AvailabilityForm(forms.ModelForm):
         ]
 
         widgets = {
-            "weekday": forms.Select(
-                attrs={
-                    "class": "form-select",
-                }
-            ),
+            "weekday": forms.Select(attrs={"class": "form-select"}),
             "start_time": forms.TimeInput(
                 attrs={
                     "class": "form-control",
@@ -142,31 +134,15 @@ class StudyFeedbackForm(forms.ModelForm):
         ]
 
         widgets = {
-            "mental_readiness": forms.Select(
-                attrs={
-                    "class": "form-select",
-                }
-            ),
-            "satisfaction": forms.Select(
-                attrs={
-                    "class": "form-select",
-                }
-            ),
-            "focus_level": forms.Select(
-                attrs={
-                    "class": "form-select",
-                }
-            ),
-            "difficulty": forms.Select(
-                attrs={
-                    "class": "form-select",
-                }
-            ),
+            "mental_readiness": forms.Select(attrs={"class": "form-select"}),
+            "satisfaction": forms.Select(attrs={"class": "form-select"}),
+            "focus_level": forms.Select(attrs={"class": "form-select"}),
+            "difficulty": forms.Select(attrs={"class": "form-select"}),
             "notes": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 4,
-                    "placeholder": ("توضیحات خود را درباره این جلسه بنویسید..."),
+                    "placeholder": ("توضیحات خود را درباره " "این جلسه بنویسید..."),
                 }
             ),
         }

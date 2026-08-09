@@ -3,7 +3,10 @@ from django.utils import timezone
 
 def calculate_exam_score(course):
     """
-    محاسبه امتیاز بر اساس نزدیک بودن امتحان.
+    امتیاز امتحان.
+
+    هرچه امتحان نزدیک‌تر باشد،
+    اولویت درس بیشتر می‌شود.
     """
 
     if not course.exam_date:
@@ -15,9 +18,6 @@ def calculate_exam_score(course):
 
     if days_remaining < 0:
         return 0
-
-    if days_remaining == 0:
-        return 50
 
     if days_remaining <= 3:
         return 40
@@ -36,17 +36,21 @@ def calculate_exam_score(course):
 
 def calculate_difficulty_score(course):
     """
-    محاسبه امتیاز سختی درس.
+    امتیاز سختی درس.
+
+    difficulty مدل بین 1 تا 10 در نظر گرفته شده.
     """
 
     difficulty = course.difficulty or 1
 
-    return min(difficulty * 3, 30)
+    difficulty = max(1, min(difficulty, 10))
+
+    return difficulty * 3
 
 
 def calculate_task_score(course):
     """
-    محاسبه امتیاز بر اساس تعداد تکالیف باز.
+    امتیاز تکالیف باز.
     """
 
     pending_tasks = course.tasks.filter(status="pending").count()
@@ -56,16 +60,16 @@ def calculate_task_score(course):
 
 def calculate_feedback_score(course):
     """
-    تحلیل Feedbackهای قبلی درس.
+    بررسی Feedbackهای قبلی درس.
 
-    تمرکز پایین:
-        نیاز بیشتر به مطالعه
+    Focus پایین:
+        +5
 
-    آمادگی پایین:
-        نیاز بیشتر به مطالعه
+    Mental Readiness پایین:
+        +5
 
-    سختی بالا:
-        نیاز بیشتر به مطالعه
+    Difficulty بالا:
+        +5
     """
 
     feedbacks = []
@@ -75,6 +79,7 @@ def calculate_feedback_score(course):
     )
 
     for session in sessions:
+
         feedbacks.append(session.feedback)
 
     if not feedbacks:
@@ -98,7 +103,7 @@ def calculate_feedback_score(course):
 
 def calculate_course_score(course):
     """
-    محاسبه امتیاز نهایی یک درس.
+    محاسبه Score نهایی درس.
     """
 
     exam_score = calculate_exam_score(course)
@@ -121,13 +126,26 @@ def calculate_course_score(course):
     }
 
 
-def rank_courses(courses):
+def calculate_course_priority(course):
     """
-    تمام درس‌ها را امتیازدهی و از بیشترین
-    اولویت به کمترین مرتب می‌کند.
+    نام جایگزین برای دریافت اولویت درس.
+
+    برای استفاده در بخش‌های دیگر پروژه.
     """
 
-    results = [calculate_course_score(course) for course in courses]
+    return calculate_course_score(course)
+
+
+def rank_courses(courses):
+    """
+    امتیازدهی و مرتب‌سازی تمام درس‌ها.
+    """
+
+    results = []
+
+    for course in courses:
+
+        results.append(calculate_course_score(course))
 
     results.sort(
         key=lambda item: item["total_score"],

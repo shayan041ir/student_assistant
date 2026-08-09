@@ -1,6 +1,6 @@
 def get_course_feedbacks(course):
     """
-    دریافت تمام Feedbackهای ثبت‌شده برای یک درس.
+    دریافت Feedbackهای یک درس.
     """
 
     sessions = course.study_sessions.filter(feedback__isnull=False).select_related(
@@ -22,7 +22,7 @@ def get_user_feedbacks(user):
     return [session.feedback for session in sessions]
 
 
-def calculate_feedback_average(feedbacks, field):
+def calculate_feedback_average(feedbacks, attribute):
     """
     محاسبه میانگین یک فیلد Feedback.
     """
@@ -30,14 +30,17 @@ def calculate_feedback_average(feedbacks, field):
     if not feedbacks:
         return 0
 
-    total = sum(getattr(feedback, field) for feedback in feedbacks)
+    values = [getattr(feedback, attribute) for feedback in feedbacks]
 
-    return round(total / len(feedbacks), 2)
+    return round(
+        sum(values) / len(values),
+        2,
+    )
 
 
 def get_course_feedback_analysis(course):
     """
-    تحلیل عملکرد کاربر در یک درس.
+    تحلیل Feedbackهای یک درس.
     """
 
     feedbacks = get_course_feedbacks(course)
@@ -111,8 +114,8 @@ def get_user_feedback_analysis(user):
 
 def get_best_study_hours(user):
     """
-    پیدا کردن بهترین ساعت‌های مطالعه
-    بر اساس Focus.
+    پیدا کردن ساعت‌هایی که کاربر
+    بیشترین Focus را داشته است.
     """
 
     sessions = user.study_sessions.filter(feedback__isnull=False).select_related(
@@ -125,9 +128,9 @@ def get_best_study_hours(user):
 
         hour = session.start_time.hour
 
-        hour_scores.setdefault(hour, [])
+        focus = session.feedback.focus_level
 
-        hour_scores[hour].append(session.feedback.focus_level)
+        hour_scores.setdefault(hour, []).append(focus)
 
     results = []
 
@@ -138,7 +141,10 @@ def get_best_study_hours(user):
         results.append(
             {
                 "hour": hour,
-                "average_focus": round(average, 2),
+                "average_focus": round(
+                    average,
+                    2,
+                ),
                 "sessions": len(scores),
             }
         )
@@ -153,8 +159,8 @@ def get_best_study_hours(user):
 
 def get_best_weekdays(user):
     """
-    پیدا کردن بهترین روزهای هفته
-    بر اساس Focus.
+    پیدا کردن روزهایی که کاربر
+    Focus بهتری داشته است.
     """
 
     sessions = user.study_sessions.filter(feedback__isnull=False).select_related(
@@ -167,9 +173,9 @@ def get_best_weekdays(user):
 
         weekday = session.date.weekday()
 
-        weekday_scores.setdefault(weekday, [])
+        focus = session.feedback.focus_level
 
-        weekday_scores[weekday].append(session.feedback.focus_level)
+        weekday_scores.setdefault(weekday, []).append(focus)
 
     results = []
 
@@ -180,7 +186,10 @@ def get_best_weekdays(user):
         results.append(
             {
                 "weekday": weekday,
-                "average_focus": round(average, 2),
+                "average_focus": round(
+                    average,
+                    2,
+                ),
                 "sessions": len(scores),
             }
         )
