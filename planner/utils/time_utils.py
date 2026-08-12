@@ -1,18 +1,24 @@
 from datetime import time
 
 
+MINUTES_PER_DAY = 24 * 60
+
+
 def time_to_minutes(value):
     """
     تبدیل time به تعداد دقیقه از ابتدای روز.
 
     مثال:
-    08:30 -> 510
+        08:30 -> 510
     """
 
     if value is None:
         return 0
 
-    return value.hour * 60 + value.minute
+    return (
+        value.hour * 60
+        + value.minute
+    )
 
 
 def minutes_to_time(minutes):
@@ -20,10 +26,10 @@ def minutes_to_time(minutes):
     تبدیل تعداد دقیقه به time.
 
     مثال:
-    510 -> 08:30
+        510 -> 08:30
     """
 
-    minutes = minutes % (24 * 60)
+    minutes %= MINUTES_PER_DAY
 
     hour = minutes // 60
     minute = minutes % 60
@@ -34,13 +40,21 @@ def minutes_to_time(minutes):
     )
 
 
-def calculate_duration(start_time, end_time):
+def calculate_duration(
+    start_time,
+    end_time,
+):
     """
     محاسبه مدت زمان بازه بر حسب دقیقه.
     """
 
-    start = time_to_minutes(start_time)
-    end = time_to_minutes(end_time)
+    start = time_to_minutes(
+        start_time
+    )
+
+    end = time_to_minutes(
+        end_time
+    )
 
     if end <= start:
         return 0
@@ -58,21 +72,26 @@ def split_time_range(
 
     مثال:
 
-    14:00 تا 17:00
-    session_minutes = 60
+        14:00 تا 17:00
+        session_minutes = 60
 
     نتیجه:
 
-    14:00 - 15:00
-    15:00 - 16:00
-    16:00 - 17:00
+        14:00 - 15:00
+        15:00 - 16:00
+        16:00 - 17:00
     """
 
     if session_minutes <= 0:
         return []
 
-    start = time_to_minutes(start_time)
-    end = time_to_minutes(end_time)
+    start = time_to_minutes(
+        start_time
+    )
+
+    end = time_to_minutes(
+        end_time
+    )
 
     if end <= start:
         return []
@@ -83,9 +102,13 @@ def split_time_range(
 
     while current + session_minutes <= end:
 
-        session_start = minutes_to_time(current)
+        session_start = minutes_to_time(
+            current
+        )
 
-        session_end = minutes_to_time(current + session_minutes)
+        session_end = minutes_to_time(
+            current + session_minutes
+        )
 
         sessions.append(
             (
@@ -103,28 +126,30 @@ def python_weekday_to_persian_weekday(
     python_weekday,
 ):
     """
-    تبدیل weekday پایتون به weekday پروژه.
+    تبدیل weekday پایتون به سیستم پروژه.
 
     Python:
-        0 Monday
-        1 Tuesday
-        2 Wednesday
-        3 Thursday
-        4 Friday
-        5 Saturday
-        6 Sunday
+        0 = Monday
+        1 = Tuesday
+        2 = Wednesday
+        3 = Thursday
+        4 = Friday
+        5 = Saturday
+        6 = Sunday
 
     Project:
-        0 Saturday
-        1 Sunday
-        2 Monday
-        3 Tuesday
-        4 Wednesday
-        5 Thursday
-        6 Friday
+        0 = Saturday
+        1 = Sunday
+        2 = Monday
+        3 = Tuesday
+        4 = Wednesday
+        5 = Thursday
+        6 = Friday
     """
 
-    return (python_weekday + 2) % 7
+    return (
+        python_weekday + 2
+    ) % 7
 
 
 def persian_weekday_to_python_weekday(
@@ -134,12 +159,26 @@ def persian_weekday_to_python_weekday(
     تبدیل weekday پروژه به weekday پایتون.
     """
 
-    return (project_weekday + 5) % 7
+    return (
+        project_weekday + 5
+    ) % 7
 
 
 def get_project_weekday(date):
     """
     دریافت روز هفته بر اساس سیستم پروژه.
+
+    خروجی:
+
+        0 = شنبه
+        1 = یکشنبه
+        2 = دوشنبه
+        3 = سه‌شنبه
+        4 = چهارشنبه
+        5 = پنجشنبه
+        6 = جمعه
     """
 
-    return python_weekday_to_persian_weekday(date.weekday())
+    return python_weekday_to_persian_weekday(
+        date.weekday()
+    )

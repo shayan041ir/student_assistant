@@ -22,15 +22,21 @@ def get_user_feedbacks(user):
     return [session.feedback for session in sessions]
 
 
-def calculate_feedback_average(feedbacks, attribute):
+def calculate_feedback_average(
+    feedbacks,
+    attribute,
+):
     """
-    محاسبه میانگین یک فیلد Feedback.
+    محاسبه میانگین یک ویژگی Feedback.
     """
 
     if not feedbacks:
         return 0
 
     values = [getattr(feedback, attribute) for feedback in feedbacks]
+
+    if not values:
+        return 0
 
     return round(
         sum(values) / len(values),
@@ -115,7 +121,7 @@ def get_user_feedback_analysis(user):
 def get_best_study_hours(user):
     """
     پیدا کردن ساعت‌هایی که کاربر
-    بیشترین Focus را داشته است.
+    در آن‌ها Focus بهتری داشته است.
     """
 
     sessions = user.study_sessions.filter(feedback__isnull=False).select_related(
@@ -130,11 +136,17 @@ def get_best_study_hours(user):
 
         focus = session.feedback.focus_level
 
-        hour_scores.setdefault(hour, []).append(focus)
+        hour_scores.setdefault(
+            hour,
+            [],
+        ).append(focus)
 
     results = []
 
     for hour, scores in hour_scores.items():
+
+        if not scores:
+            continue
 
         average = sum(scores) / len(scores)
 
@@ -161,6 +173,12 @@ def get_best_weekdays(user):
     """
     پیدا کردن روزهایی که کاربر
     Focus بهتری داشته است.
+
+    خروجی weekday بر اساس سیستم Python است:
+
+        0 = Monday
+        ...
+        6 = Sunday
     """
 
     sessions = user.study_sessions.filter(feedback__isnull=False).select_related(
@@ -175,11 +193,17 @@ def get_best_weekdays(user):
 
         focus = session.feedback.focus_level
 
-        weekday_scores.setdefault(weekday, []).append(focus)
+        weekday_scores.setdefault(
+            weekday,
+            [],
+        ).append(focus)
 
     results = []
 
     for weekday, scores in weekday_scores.items():
+
+        if not scores:
+            continue
 
         average = sum(scores) / len(scores)
 

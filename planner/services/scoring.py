@@ -3,10 +3,9 @@ from django.utils import timezone
 
 def calculate_exam_score(course):
     """
-    امتیاز امتحان.
+    امتیاز نزدیکی امتحان.
 
-    هرچه امتحان نزدیک‌تر باشد،
-    اولویت درس بیشتر می‌شود.
+    امتحان نزدیک‌تر = اولویت بیشتر.
     """
 
     if not course.exam_date:
@@ -14,7 +13,9 @@ def calculate_exam_score(course):
 
     today = timezone.localdate()
 
-    days_remaining = (course.exam_date - today).days
+    days_remaining = (
+        course.exam_date - today
+    ).days
 
     if days_remaining < 0:
         return 0
@@ -38,56 +39,70 @@ def calculate_difficulty_score(course):
     """
     امتیاز سختی درس.
 
-    difficulty مدل بین 1 تا 10 در نظر گرفته شده.
+    difficulty بین 1 تا 10 است.
     """
 
     difficulty = course.difficulty or 1
 
-    difficulty = max(1, min(difficulty, 10))
+    difficulty = max(
+        1,
+        min(difficulty, 10),
+    )
 
     return difficulty * 3
 
 
 def calculate_task_score(course):
     """
-    امتیاز تکالیف باز.
+    امتیاز تعداد تکالیف در انتظار.
+
+    هر تکلیف:
+        +5
+
+    حداکثر:
+        25
     """
 
-    pending_tasks = course.tasks.filter(status="pending").count()
+    pending_tasks = (
+        course.tasks
+        .filter(status="pending")
+        .count()
+    )
 
-    return min(pending_tasks * 5, 25)
+    return min(
+        pending_tasks * 5,
+        25,
+    )
 
 
 def calculate_feedback_score(course):
     """
-    بررسی Feedbackهای قبلی درس.
+    امتیاز Feedbackهای قبلی.
 
     Focus پایین:
         +5
 
-    Mental Readiness پایین:
+    آمادگی ذهنی پایین:
         +5
 
-    Difficulty بالا:
+    سختی بالا:
         +5
+
+    حداکثر:
+        25
     """
 
-    feedbacks = []
-
-    sessions = course.study_sessions.filter(feedback__isnull=False).select_related(
-        "feedback"
+    sessions = (
+        course.study_sessions
+        .filter(feedback__isnull=False)
+        .select_related("feedback")
     )
-
-    for session in sessions:
-
-        feedbacks.append(session.feedback)
-
-    if not feedbacks:
-        return 0
 
     total = 0
 
-    for feedback in feedbacks:
+    for session in sessions:
+
+        feedback = session.feedback
 
         if feedback.mental_readiness <= 2:
             total += 5
@@ -98,23 +113,39 @@ def calculate_feedback_score(course):
         if feedback.difficulty >= 4:
             total += 5
 
-    return min(total, 25)
+    return min(
+        total,
+        25,
+    )
 
 
 def calculate_course_score(course):
     """
-    محاسبه Score نهایی درس.
+    محاسبه امتیاز نهایی درس.
     """
 
-    exam_score = calculate_exam_score(course)
+    exam_score = calculate_exam_score(
+        course
+    )
 
-    difficulty_score = calculate_difficulty_score(course)
+    difficulty_score = calculate_difficulty_score(
+        course
+    )
 
-    task_score = calculate_task_score(course)
+    task_score = calculate_task_score(
+        course
+    )
 
-    feedback_score = calculate_feedback_score(course)
+    feedback_score = calculate_feedback_score(
+        course
+    )
 
-    total_score = exam_score + difficulty_score + task_score + feedback_score
+    total_score = (
+        exam_score
+        + difficulty_score
+        + task_score
+        + feedback_score
+    )
 
     return {
         "course": course,
@@ -129,23 +160,23 @@ def calculate_course_score(course):
 def calculate_course_priority(course):
     """
     نام جایگزین برای دریافت اولویت درس.
-
-    برای استفاده در بخش‌های دیگر پروژه.
     """
 
-    return calculate_course_score(course)
+    return calculate_course_score(
+        course
+    )
 
 
 def rank_courses(courses):
     """
-    امتیازدهی و مرتب‌سازی تمام درس‌ها.
+    امتیازدهی و مرتب‌سازی درس‌ها
+    از بیشترین اولویت به کمترین.
     """
 
-    results = []
-
-    for course in courses:
-
-        results.append(calculate_course_score(course))
+    results = [
+        calculate_course_score(course)
+        for course in courses
+    ]
 
     results.sort(
         key=lambda item: item["total_score"],

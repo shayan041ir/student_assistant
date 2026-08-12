@@ -1,181 +1,192 @@
 {% extends "base.html" %}
 
-
 {% block title %}
 برنامه مطالعه
 {% endblock %}
 
-
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
 
-    <div>
+<div>
+    <h2 class="mb-1">
+        برنامه مطالعه
+    </h2>
 
-        <h2>
-            برنامه مطالعه
-        </h2>
+    <p class="text-muted mb-0">
+        برنامه جلسات مطالعه خودت را مدیریت کن.
+    </p>
+</div>
 
-        <p class="text-muted mb-0">
-            برنامه جلسات مطالعه خودت را مدیریت کن.
-        </p>
-
-    </div>
-
+<div class="d-flex gap-2 flex-wrap">
 
     <a href="{% url 'planner:create' %}" class="btn btn-primary">
-
         <i class="bi bi-plus-lg"></i>
-
         برنامه جدید
-
     </a>
 
-    <form method="post" action="{% url 'planner:generate_plan' %}" class="mb-4">
+    <a href="{% url 'planner:availability_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-clock"></i>
+        زمان‌های آزاد
+    </a>
+
+    <form method="post" action="{% url 'planner:generate_plan' %}" class="d-inline">
         {% csrf_token %}
 
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-success">
             <i class="bi bi-magic"></i>
-
             ساخت برنامه هوشمند
         </button>
     </form>
 
 </div>
 
+</div>
 
 {% if sessions %}
 
 <div class="row g-3">
 
-    {% for session in sessions %}
+{% for session in sessions %}
 
-    <div class="col-md-6 col-lg-4">
+<div class="col-md-6 col-lg-4">
 
-        <div class="card shadow-sm h-100">
+    <div class="card shadow-sm h-100">
 
-            <div class="card-body">
+        <div class="card-body d-flex flex-column">
 
-                <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between align-items-start gap-2">
 
-                    <h5>
-                        {{ session.title }}
-                    </h5>
-
-
-                    {% if session.status == "completed" %}
-
-                    <span class="badge bg-success">
-                        انجام شده
-                    </span>
-
-                    {% else %}
-
-                    <span class="badge bg-primary">
-                        برنامه‌ریزی شده
-                    </span>
-
-                    {% endif %}
-
-                </div>
-
-
-                <hr>
-
-
-                <p class="mb-2">
-
-                    <i class="bi bi-book"></i>
-
-                    {{ session.course.name }}
-
-                </p>
-
-
-                <p class="mb-2">
-
-                    <i class="bi bi-calendar3"></i>
-
-                    {{ session.date }}
-
-                </p>
-
-
-                <p class="mb-2">
-
-                    <i class="bi bi-clock"></i>
-
-                    {{ session.start_time }}
-
-                    -
-
-                    {{ session.end_time }}
-
-                </p>
-
-
-                {% if session.description %}
-
-                <p class="text-muted mt-3">
-
-                    {{ session.description }}
-
-                </p>
-
-                {% endif %}
-
-                <hr>
+                <h5 class="card-title mb-0">
+                    {{ session.title }}
+                </h5>
 
                 {% if session.status == "completed" %}
 
-                {% if session.feedback %}
-
                 <span class="badge bg-success">
-                    بازخورد ثبت شده
+                    انجام شده
+                </span>
+
+                {% elif session.status == "cancelled" %}
+
+                <span class="badge bg-secondary">
+                    لغو شده
                 </span>
 
                 {% else %}
 
-                <a href="{% url 'planner:feedback_create' session.pk %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-chat-square-text"></i>
-                    ثبت بازخورد
-                </a>
+                <span class="badge bg-primary">
+                    برنامه‌ریزی شده
+                </span>
 
                 {% endif %}
 
-                {% endif %}
+            </div>
+
+            <hr>
+
+            <p class="mb-2">
+                <i class="bi bi-book"></i>
+                <strong>درس:</strong>
+                {{ session.course.name }}
+            </p>
+
+            <p class="mb-2">
+                <i class="bi bi-calendar3"></i>
+                <strong>تاریخ:</strong>
+                {{ session.date }}
+            </p>
+
+            <p class="mb-2">
+                <i class="bi bi-clock"></i>
+                <strong>زمان:</strong>
+                {{ session.start_time|time:"H:i" }}
+                -
+                {{ session.end_time|time:"H:i" }}
+            </p>
+
+            <p class="mb-0">
+                <i class="bi bi-hourglass-split"></i>
+                <strong>مدت:</strong>
+                {{ session.duration_minutes }} دقیقه
+            </p>
+
+            {% if session.description %}
+
+            <div class="alert alert-light mt-3 mb-0">
+                <small class="text-muted">
+                    {{ session.description }}
+                </small>
+            </div>
+
+            {% endif %}
 
 
-                <div class="d-flex gap-2 mt-3">
+            <div class="mt-auto pt-3">
 
-                    {% if session.status != "completed" %}
+                {% if session.status == "completed" %}
 
-                    <a href="{% url 'planner:complete' session.pk %}" class="btn btn-success btn-sm">
+                    {% if session.feedback %}
 
-                        <i class="bi bi-check-lg"></i>
+                    <div class="alert alert-success py-2 mb-3">
+                        <i class="bi bi-check-circle"></i>
+                        بازخورد این جلسه ثبت شده است.
+                    </div>
 
-                        انجام شد
+                    {% else %}
 
+                    <a
+                        href="{% url 'planner:feedback_create' session.pk %}"
+                        class="btn btn-primary btn-sm w-100 mb-3"
+                    >
+                        <i class="bi bi-chat-square-text"></i>
+                        ثبت بازخورد جلسه
                     </a>
 
                     {% endif %}
 
+                {% endif %}
 
-                    <a href="{% url 'planner:update' session.pk %}" class="btn btn-warning btn-sm">
 
+                <div class="d-flex gap-2 flex-wrap">
+
+                    {% if session.status != "completed" %}
+
+                    <form
+                        method="post"
+                        action="{% url 'planner:complete' session.pk %}"
+                        class="d-inline"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-success btn-sm"
+                        >
+                            <i class="bi bi-check-lg"></i>
+                            انجام شد
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+
+
+                    <a
+                        href="{% url 'planner:update' session.pk %}"
+                        class="btn btn-warning btn-sm"
+                    >
                         <i class="bi bi-pencil"></i>
-
                         ویرایش
-
                     </a>
 
 
-                    <a href="{% url 'planner:delete' session.pk %}" class="btn btn-danger btn-sm">
-
+                    <a
+                        href="{% url 'planner:delete' session.pk %}"
+                        class="btn btn-danger btn-sm"
+                    >
                         <i class="bi bi-trash"></i>
-
                         حذف
-
                     </a>
 
                 </div>
@@ -186,20 +197,43 @@
 
     </div>
 
-    {% endfor %}
+</div>
+
+{% endfor %}
 
 </div>
 
-
 {% else %}
 
-<div class="alert alert-info">
+<div class="card shadow-sm">
 
-    هنوز هیچ برنامه‌ای ایجاد نکرده‌ای.
+<div class="card-body text-center py-5">
 
-    <a href="{% url 'planner:create' %}">
-        اولین برنامه را ایجاد کن.
-    </a>
+    <i class="bi bi-calendar-x fs-1 text-muted"></i>
+
+    <h4 class="mt-3">
+        هنوز برنامه‌ای ایجاد نکرده‌ای
+    </h4>
+
+    <p class="text-muted">
+        می‌توانی یک جلسه مطالعه ایجاد کنی یا از برنامه‌ریز هوشمند استفاده کنی.
+    </p>
+
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+        <a href="{% url 'planner:create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i>
+            ایجاد جلسه
+        </a>
+
+        <a href="{% url 'planner:availability_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-clock"></i>
+            تنظیم زمان‌های آزاد
+        </a>
+
+    </div>
+
+</div>
 
 </div>
 

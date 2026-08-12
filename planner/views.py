@@ -13,21 +13,46 @@ from .forms import (
 )
 from .models import (
     Availability,
+    StudyFeedback,
     StudySession,
 )
 from .services.planner_service import generate_weekly_plan
 
 
+def _set_course_queryset(form, user):
+    form.fields["course"].queryset = user.courses.all()
+
+
+def _has_session_conflict(
+    user,
+    date,
+    start_time,
+    end_time,
+    exclude_pk=None,
+):
+    queryset = StudySession.objects.filter(
+        user=user,
+        date=date,
+        start_time__lt=end_time,
+        end_time__gt=start_time,
+    )
+
+    if exclude_pk:
+        queryset = queryset.exclude(pk=exclude_pk)
+
+    return queryset.exists()
+
+
 @login_required
 def index(request):
-    """
-    صفحه اصلی برنامه مطالعه.
-    """
-
     sessions = (
         StudySession.objects.filter(user=request.user)
         .select_related("course")
-        .order_by("date", "start_time")
+        .prefetch_related("feedback")
+        .order_by(
+            "date",
+            "start_time",
+        )
     )
 
     return render(
@@ -46,28 +71,52 @@ def create_session(request):
 
         form = StudySessionForm(request.POST)
 
-        form.fields["course"].queryset = request.user.courses.all()
+        _set_course_queryset(
+            form,
+            request.user,
+        )
 
         if form.is_valid():
 
-            session = form.save(commit=False)
+            date = form.cleaned_data["date"]
+            start_time = form.cleaned_data["start_time"]
+            end_time = form.cleaned_data["end_time"]
 
-            session.user = request.user
+            if _has_session_conflict(
+                user=request.user,
+                date=date,
+                start_time=start_time,
+                end_time=end_time,
+            ):
+                form.add_error(
+                    None,
+                    "این بازه زمانی با یک جلسه مطالعه دیگر تداخل دارد.",
+                )
 
-            session.save()
+            else:
 
-            messages.success(
-                request,
-                "جلسه مطالعه با موفقیت ایجاد شد.",
-            )
+                session = form.save(commit=False)
 
-            return redirect("planner:index")
+                session.user = request.user
+                session.status = "planned"
+
+                session.save()
+
+                messages.success(
+                    request,
+                    "جلسه مطالعه با موفقیت ایجاد شد.",
+                )
+
+                return redirect("planner:index")
 
     else:
 
         form = StudySessionForm()
 
-        form.fields["course"].queryset = request.user.courses.all()
+        _set_course_queryset(
+            form,
+            request.user,
+        )
 
     return render(
         request,
@@ -95,24 +144,52 @@ def update_session(request, pk):
             instance=session,
         )
 
-        form.fields["course"].queryset = request.user.courses.all()
+        _set_course_queryset(
+            form,
+            request.user,
+        )
 
         if form.is_valid():
 
-            form.save()
+            date = form.cleaned_data["date"]
+            start_time = form.cleaned_data["start_time"]
+            end_time = form.cleaned_data["end_time"]
 
-            messages.success(
-                request,
-                "جلسه مطالعه با موفقیت ویرایش شد.",
-            )
+            if _has_session_conflict(
+                user=request.user,
+                date=date,
+                start_time=start_time,
+                end_time=end_time,
+                exclude_pk=session.pk,
+            ):
+                form.add_error(
+                    None,
+                    "این بازه زمانی با یک جلسه مطالعه دیگر تداخل دارد.",
+                )
 
-            return redirect("planner:index")
+            else:
+
+                updated_session = form.save(commit=False)
+
+                updated_session.status = session.status
+
+                updated_session.save()
+
+                messages.success(
+                    request,
+                    "جلسه مطالعه با موفقیت ویرایش شد.",
+                )
+
+                return redirect("planner:index")
 
     else:
 
         form = StudySessionForm(instance=session)
 
-        form.fields["course"].queryset = request.user.courses.all()
+        _set_course_queryset(
+            form,
+            request.user,
+        )
 
     return render(
         request,
@@ -139,7 +216,7 @@ def delete_session(request, pk):
 
         messages.success(
             request,
-            "جلسه مطالعه حذف شد.",
+            "جلسه مطالعه با موفقیت حذف شد.",
         )
 
         return redirect("planner:index")
@@ -161,6 +238,15 @@ def complete_session(request, pk):
         pk=pk,
         user=request.user,
     )
+
+    if session.status == "completed":
+
+        messages.info(
+            request,
+            "این جلسه قبلاً انجام‌شده ثبت شده است.",
+        )
+
+        return redirect("planner:index")
 
     session.status = "completed"
 
@@ -228,6 +314,59 @@ def availability_create(request):
 
 
 @login_required
+def availability_toggle(request, pk):
+
+    availability = get_object_or_404(
+        Availability,
+        pk=pk,
+        user=request.user,
+    )
+
+    if request.method == "POST":
+
+        availability.is_active = not availability.is_active
+
+        availability.save(update_fields=["is_active"])
+
+        if availability.is_active:
+
+            messages.success(
+                request,
+                "زمان آزاد فعال شد.",
+            )
+
+        else:
+
+            messages.info(
+                request,
+                "زمان آزاد غیرفعال شد.",
+            )
+
+    return redirect("planner:availability_list")
+
+
+@login_required
+def availability_delete(request, pk):
+
+    availability = get_object_or_404(
+        Availability,
+        pk=pk,
+        user=request.user,
+    )
+
+    if request.method == "POST":
+
+        availability.delete()
+
+        messages.success(
+            request,
+            "زمان آزاد حذف شد.",
+        )
+
+    return redirect("planner:availability_list")
+
+
+@login_required
 def create_feedback(request, pk):
 
     session = get_object_or_404(
@@ -291,13 +430,23 @@ def create_feedback(request, pk):
 def generate_plan(request):
 
     if request.method != "POST":
-
         return redirect("planner:index")
 
-    sessions = generate_weekly_plan(
-        user=request.user,
-        session_minutes=60,
-    )
+    try:
+
+        sessions = generate_weekly_plan(
+            user=request.user,
+            session_minutes=60,
+        )
+
+    except ValueError as exc:
+
+        messages.error(
+            request,
+            str(exc),
+        )
+
+        return redirect("planner:index")
 
     if sessions:
 

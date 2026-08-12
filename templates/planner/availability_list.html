@@ -6,80 +6,189 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
 
-    <div>
+<div>
 
-        <h2>
-            زمان‌های آزاد
-        </h2>
+    <h2 class="mb-1">
+        زمان‌های آزاد
+    </h2>
 
-        <p class="text-muted mb-0">
-            زمان‌هایی که در طول هفته برای مطالعه در اختیار داری.
-        </p>
+    <p class="text-muted mb-0">
+        زمان‌هایی که در طول هفته برای مطالعه در اختیار داری.
+    </p>
 
-    </div>
+</div>
 
-    <a href="{% url 'planner:availability_create' %}" class="btn btn-primary">
+<div class="d-flex gap-2">
+
+    <a
+        href="{% url 'planner:index' %}"
+        class="btn btn-secondary"
+    >
+        <i class="bi bi-calendar3"></i>
+        برنامه مطالعه
+    </a>
+
+    <a
+        href="{% url 'planner:availability_create' %}"
+        class="btn btn-primary"
+    >
         <i class="bi bi-plus-lg"></i>
         افزودن زمان
     </a>
 
 </div>
 
+</div>
 
 {% if availabilities %}
 
 <div class="row g-3">
 
-    {% for availability in availabilities %}
+{% for availability in availabilities %}
 
-    <div class="col-md-6 col-lg-4">
+<div class="col-md-6 col-lg-4">
 
-        <div class="card shadow-sm h-100">
+    <div class="card shadow-sm h-100">
 
-            <div class="card-body">
+        <div class="card-body d-flex flex-column">
 
-                <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between align-items-start">
 
-                    <h5 class="card-title">
+                <h5 class="card-title mb-0">
 
-                        <i class="bi bi-calendar3"></i>
+                    <i class="bi bi-calendar3"></i>
 
-                        {{ availability.get_weekday_display }}
+                    {{ availability.get_weekday_display }}
 
-                    </h5>
-
-                    {% if availability.is_active %}
-
-                    <span class="badge bg-success">
-                        فعال
-                    </span>
-
-                    {% else %}
-
-                    <span class="badge bg-secondary">
-                        غیرفعال
-                    </span>
-
-                    {% endif %}
-
-                </div>
+                </h5>
 
 
-                <div class="mt-3">
+                {% if availability.is_active %}
 
-                    <p class="mb-1">
+                <span class="badge bg-success">
+                    فعال
+                </span>
 
-                        <i class="bi bi-clock"></i>
+                {% else %}
 
-                        {{ availability.start_time|time:"H:i" }}
+                <span class="badge bg-secondary">
+                    غیرفعال
+                </span>
 
-                        تا
+                {% endif %}
 
-                        {{ availability.end_time|time:"H:i" }}
+            </div>
 
-                    </p>
+
+            <hr>
+
+
+            <div class="mb-3">
+
+                <p class="mb-2">
+
+                    <i class="bi bi-clock"></i>
+
+                    <strong>
+                        ساعت:
+                    </strong>
+
+                    {{ availability.start_time|time:"H:i" }}
+
+                    تا
+
+                    {{ availability.end_time|time:"H:i" }}
+
+                </p>
+
+
+                <p class="mb-0">
+
+                    <i class="bi bi-hourglass-split"></i>
+
+                    <strong>
+                        مدت:
+                    </strong>
+
+                    {{ availability.duration_minutes }}
+                    دقیقه
+
+                </p>
+
+            </div>
+
+
+            {% if availability.is_active %}
+
+            <div class="alert alert-success py-2 small">
+                این زمان در ساخت برنامه هوشمند استفاده می‌شود.
+            </div>
+
+            {% else %}
+
+            <div class="alert alert-secondary py-2 small">
+                این زمان در ساخت برنامه هوشمند استفاده نمی‌شود.
+            </div>
+
+            {% endif %}
+
+
+            <div class="mt-auto pt-2">
+
+                <div class="d-flex gap-2">
+
+                    <form
+                        method="post"
+                        action="{% url 'planner:availability_toggle' availability.pk %}"
+                        class="flex-grow-1"
+                    >
+
+                        {% csrf_token %}
+
+                        {% if availability.is_active %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-secondary btn-sm w-100"
+                        >
+                            <i class="bi bi-pause-circle"></i>
+                            غیرفعال کردن
+                        </button>
+
+                        {% else %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-success btn-sm w-100"
+                        >
+                            <i class="bi bi-check-circle"></i>
+                            فعال کردن
+                        </button>
+
+                        {% endif %}
+
+                    </form>
+
+
+                    <form
+                        method="post"
+                        action="{% url 'planner:availability_delete' availability.pk %}"
+                        onsubmit="return confirm('آیا مطمئنی که می‌خواهی این زمان آزاد را حذف کنی؟');"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-danger btn-sm"
+                            title="حذف"
+                        >
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </form>
 
                 </div>
 
@@ -89,19 +198,38 @@
 
     </div>
 
-    {% endfor %}
+</div>
+
+{% endfor %}
 
 </div>
 
 {% else %}
 
-<div class="alert alert-info">
+<div class="card shadow-sm">
 
-    هنوز هیچ زمان آزادی ثبت نکرده‌ای.
+<div class="card-body text-center py-5">
 
-    <a href="{% url 'planner:availability_create' %}">
+    <i class="bi bi-clock-history fs-1 text-muted"></i>
+
+    <h4 class="mt-3">
+        هنوز زمان آزادی ثبت نکرده‌ای
+    </h4>
+
+    <p class="text-muted">
+        برای اینکه برنامه‌ریز هوشمند بتواند برایت برنامه ایجاد کند،
+        ابتدا زمان‌های آزاد خودت را مشخص کن.
+    </p>
+
+    <a
+        href="{% url 'planner:availability_create' %}"
+        class="btn btn-primary"
+    >
+        <i class="bi bi-plus-lg"></i>
         افزودن اولین زمان
     </a>
+
+</div>
 
 </div>
 
