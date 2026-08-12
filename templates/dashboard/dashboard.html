@@ -1,33 +1,60 @@
 {% extends "base.html" %}
 
+
 {% block title %}
 داشبورد
 {% endblock %}
 
+
 {% block content %}
+
+
+<!-- =========================
+     Header
+========================= -->
 
 <div class="d-flex justify-content-between align-items-center mb-4">
 
     <div>
 
-        <h2>
+        <h2 class="mb-1">
             سلام {{ user.username }} 👋
         </h2>
 
-        <p class="text-muted">
+        <p class="text-muted mb-0">
             به دستیار دانشجوی خودت خوش آمدی.
         </p>
+
+    </div>
+
+
+    <div class="d-flex gap-2">
+
+        <a
+            href="{% url 'planner:index' %}"
+            class="btn btn-primary"
+        >
+            <i class="bi bi-calendar3"></i>
+            برنامه مطالعه
+        </a>
 
     </div>
 
 </div>
 
 
+<!-- =========================
+     Statistics
+========================= -->
+
 <div class="row g-4 mb-4">
+
+
+    <!-- Courses -->
 
     <div class="col-md-4">
 
-        <div class="card shadow-sm dashboard-card">
+        <div class="card shadow-sm dashboard-card h-100">
 
             <div class="card-body">
 
@@ -39,7 +66,7 @@
                             درس‌ها
                         </p>
 
-                        <h2>
+                        <h2 class="mb-0">
                             {{ courses_count }}
                         </h2>
 
@@ -56,9 +83,11 @@
     </div>
 
 
+    <!-- Notes -->
+
     <div class="col-md-4">
 
-        <div class="card shadow-sm dashboard-card">
+        <div class="card shadow-sm dashboard-card h-100">
 
             <div class="card-body">
 
@@ -70,7 +99,7 @@
                             نوت‌ها
                         </p>
 
-                        <h2>
+                        <h2 class="mb-0">
                             {{ notes_count }}
                         </h2>
 
@@ -87,9 +116,11 @@
     </div>
 
 
+    <!-- Tasks -->
+
     <div class="col-md-4">
 
-        <div class="card shadow-sm dashboard-card">
+        <div class="card shadow-sm dashboard-card h-100">
 
             <div class="card-body">
 
@@ -101,7 +132,7 @@
                             تکالیف
                         </p>
 
-                        <h2>
+                        <h2 class="mb-0">
                             {{ tasks_count }}
                         </h2>
 
@@ -117,57 +148,524 @@
 
     </div>
 
+
 </div>
 
+
+<!-- =========================
+     Today's Study
+========================= -->
+
+<div class="row g-4 mb-4">
+
+
+    <!-- Today Sessions -->
+
+    <div class="col-lg-8">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <div>
+
+                        <h5 class="mb-1">
+                            برنامه امروز
+                        </h5>
+
+                        <small class="text-muted">
+                            {{ today }}
+                        </small>
+
+                    </div>
+
+
+                    <a
+                        href="{% url 'planner:index' %}"
+                        class="btn btn-outline-primary btn-sm"
+                    >
+                        مشاهده همه
+                    </a>
+
+                </div>
+
+
+                {% if today_sessions %}
+
+                    <div class="list-group">
+
+                        {% for session in today_sessions %}
+
+                            <div class="list-group-item">
+
+                                <div class="d-flex justify-content-between align-items-center">
+
+                                    <div>
+
+                                        <strong>
+                                            {{ session.title }}
+                                        </strong>
+
+                                        <div class="small text-muted mt-1">
+
+                                            <i class="bi bi-book"></i>
+
+                                            {{ session.course.name }}
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="text-end">
+
+                                        <div>
+
+                                            <i class="bi bi-clock"></i>
+
+                                            {{ session.start_time|time:"H:i" }}
+
+                                            -
+
+                                            {{ session.end_time|time:"H:i" }}
+
+                                        </div>
+
+
+                                        <div class="mt-1">
+
+                                            {% if session.status == "completed" %}
+
+                                                <span class="badge bg-success">
+                                                    انجام شده
+                                                </span>
+
+                                            {% elif session.status == "cancelled" %}
+
+                                                <span class="badge bg-danger">
+                                                    لغو شده
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="badge bg-primary">
+                                                    برنامه‌ریزی شده
+                                                </span>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="alert alert-info mb-0">
+
+                        <i class="bi bi-info-circle"></i>
+
+                        برای امروز جلسه مطالعه‌ای نداری.
+
+                        <div class="mt-2">
+
+                            <a
+                                href="{% url 'planner:create' %}"
+                                class="btn btn-primary btn-sm"
+                            >
+                                ایجاد جلسه مطالعه
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Today's Progress -->
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body">
+
+                <h5 class="mb-4">
+                    پیشرفت امروز
+                </h5>
+
+
+                <div class="text-center mb-4">
+
+                    <div
+                        class="display-4 fw-bold text-primary"
+                    >
+                        {{ study_progress }}%
+                    </div>
+
+                    <p class="text-muted mb-0">
+                        پیشرفت جلسات مطالعه
+                    </p>
+
+                </div>
+
+
+                <div class="progress mb-4" style="height: 10px;">
+
+                    <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {{ study_progress }}%;"
+                        aria-valuenow="{{ study_progress }}"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                    ></div>
+
+                </div>
+
+
+                <div class="d-flex justify-content-between mb-2">
+
+                    <span class="text-muted">
+                        کل جلسات امروز
+                    </span>
+
+                    <strong>
+                        {{ today_sessions_count }}
+                    </strong>
+
+                </div>
+
+
+                <div class="d-flex justify-content-between mb-2">
+
+                    <span class="text-muted">
+                        انجام شده
+                    </span>
+
+                    <strong class="text-success">
+                        {{ today_completed_sessions }}
+                    </strong>
+
+                </div>
+
+
+                <div class="d-flex justify-content-between">
+
+                    <span class="text-muted">
+                        باقی‌مانده
+                    </span>
+
+                    <strong class="text-warning">
+                        {{ today_pending_sessions }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     Tasks + Upcoming Sessions
+========================= -->
+
+<div class="row g-4 mb-4">
+
+
+    <!-- Pending Tasks -->
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <h5 class="mb-0">
+                        تکالیف پیش رو
+                    </h5>
+
+                    <a
+                        href="{% url 'tasks:list' %}"
+                        class="btn btn-outline-primary btn-sm"
+                    >
+                        همه تکالیف
+                    </a>
+
+                </div>
+
+
+                {% if pending_tasks %}
+
+                    <div class="list-group">
+
+                        {% for task in pending_tasks %}
+
+                            <div class="list-group-item">
+
+                                <div class="d-flex justify-content-between">
+
+                                    <div>
+
+                                        <strong>
+                                            {{ task.title }}
+                                        </strong>
+
+                                        <div class="small text-muted mt-1">
+
+                                            {{ task.course.name }}
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        {% if task.due_date %}
+
+                                            <span class="badge bg-warning text-dark">
+
+                                                {{ task.due_date }}
+
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-secondary">
+
+                                                بدون تاریخ
+
+                                            </span>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="alert alert-success mb-0">
+
+                        🎉 فعلاً تکلیف عقب‌افتاده یا در انتظاری نداری.
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Upcoming Sessions -->
+
+    <div class="col-lg-6">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <h5 class="mb-0">
+                        جلسات آینده
+                    </h5>
+
+                    <a
+                        href="{% url 'planner:index' %}"
+                        class="btn btn-outline-primary btn-sm"
+                    >
+                        برنامه مطالعه
+                    </a>
+
+                </div>
+
+
+                {% if upcoming_sessions %}
+
+                    <div class="list-group">
+
+                        {% for session in upcoming_sessions %}
+
+                            <div class="list-group-item">
+
+                                <div class="d-flex justify-content-between">
+
+                                    <div>
+
+                                        <strong>
+                                            {{ session.title }}
+                                        </strong>
+
+                                        <div class="small text-muted mt-1">
+
+                                            <i class="bi bi-book"></i>
+
+                                            {{ session.course.name }}
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="text-end">
+
+                                        <div class="small">
+
+                                            {{ session.date }}
+
+                                        </div>
+
+                                        <div class="small text-muted">
+
+                                            {{ session.start_time|time:"H:i" }}
+
+                                            -
+
+                                            {{ session.end_time|time:"H:i" }}
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="alert alert-info mb-0">
+
+                        هنوز جلسه مطالعه‌ای برای آینده ثبت نشده است.
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     Overall Study Statistics
+========================= -->
 
 <div class="card shadow-sm">
 
     <div class="card-body">
 
         <h5 class="mb-4">
-            تکالیف پیش رو
+            وضعیت کلی مطالعه
         </h5>
 
-        {% if pending_tasks %}
 
-            <div class="list-group">
+        <div class="row text-center">
 
-                {% for task in pending_tasks %}
 
-                    <div class="list-group-item">
+            <div class="col-md-4 mb-3 mb-md-0">
 
-                        <div class="d-flex justify-content-between">
+                <div class="border rounded p-3">
 
-                            <strong>
-                                {{ task.title }}
-                            </strong>
+                    <i class="bi bi-calendar-check fs-2 text-success"></i>
 
-                            <span class="text-muted">
-                                {{ task.due_date|default:"بدون تاریخ" }}
-                            </span>
+                    <h3 class="mt-2 mb-1">
+                        {{ completed_sessions_count }}
+                    </h3>
 
-                        </div>
+                    <span class="text-muted">
+                        جلسات انجام شده
+                    </span>
 
-                        <small class="text-muted">
-                            {{ task.course.name }}
-                        </small>
-
-                    </div>
-
-                {% endfor %}
+                </div>
 
             </div>
 
-        {% else %}
 
-            <div class="alert alert-success mb-0">
-                فعلاً تکلیف عقب‌افتاده‌ای نداری 🎉
+            <div class="col-md-4 mb-3 mb-md-0">
+
+                <div class="border rounded p-3">
+
+                    <i class="bi bi-calendar-event fs-2 text-primary"></i>
+
+                    <h3 class="mt-2 mb-1">
+                        {{ planned_sessions_count }}
+                    </h3>
+
+                    <span class="text-muted">
+                        جلسات برنامه‌ریزی شده
+                    </span>
+
+                </div>
+
             </div>
 
-        {% endif %}
+
+            <div class="col-md-4">
+
+                <div class="border rounded p-3">
+
+                    <i class="bi bi-journal-check fs-2 text-warning"></i>
+
+                    <h3 class="mt-2 mb-1">
+                        {{ notes_count }}
+                    </h3>
+
+                    <span class="text-muted">
+                        نوت‌های ثبت شده
+                    </span>
+
+                </div>
+
+            </div>
+
+
+        </div>
 
     </div>
 
 </div>
+
 
 {% endblock %}
