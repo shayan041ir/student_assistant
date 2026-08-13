@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}
+ثبت بازخورد جلسه
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+<div class="col-md-8 col-lg-7">
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <div class="mb-4">
+
+                <h3 class="mb-2">
+                    <i class="bi bi-chat-square-text"></i>
+                    ثبت بازخورد جلسه
+                </h3>
+
+                <p class="text-muted mb-1">
+                    {{ session.title }}
+                </p>
+
+                <small class="text-muted">
+                    {{ session.course.name }}
+                    |
+                    {{ session.date }}
+                    |
+                    {{ session.start_time|time:"H:i" }}
+                    -
+                    {{ session.end_time|time:"H:i" }}
+                </small>
+
+            </div>
+
+
+            <form method="post">
+
+                {% csrf_token %}
+
+
+                {% if form.non_field_errors %}
+
+                <div class="alert alert-danger">
+
+                    {% for error in form.non_field_errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+                {% endif %}
+
+
+                <div class="mb-3">
+
+                    <label
+                        for="{{ form.mental_readiness.id_for_label }}"
+                        class="form-label"
+                    >
+                        آمادگی ذهنی
+                    </label>
+
+                    {{ form.mental_readiness }}
+
+                    {% for error in form.mental_readiness.errors %}
+
+                    <div class="text-danger small mt-1">
+                        {{ error }}
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label
+                        for="{{ form.satisfaction.id_for_label }}"
+                        class="form-label"
+                    >
+                        میزان رضایت
+                    </label>
+
+                    {{ form.satisfaction }}
+
+                    {% for error in form.satisfaction.errors %}
+
+                    <div class="text-danger small mt-1">
+                        {{ error }}
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label
+                        for="{{ form.focus_level.id_for_label }}"
+                        class="form-label"
+                    >
+                        میزان تمرکز
+                    </label>
+
+                    {{ form.focus_level }}
+
+                    {% for error in form.focus_level.errors %}
+
+                    <div class="text-danger small mt-1">
+                        {{ error }}
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label
+                        for="{{ form.difficulty.id_for_label }}"
+                        class="form-label"
+                    >
+                        سختی جلسه
+                    </label>
+
+                    {{ form.difficulty }}
+
+                    {% for error in form.difficulty.errors %}
+
+                    <div class="text-danger small mt-1">
+                        {{ error }}
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label
+                        for="{{ form.notes.id_for_label }}"
+                        class="form-label"
+                    >
+                        توضیحات
+                    </label>
+
+                    {{ form.notes }}
+
+                    {% for error in form.notes.errors %}
+
+                    <div class="text-danger small mt-1">
+                        {{ error }}
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="d-flex gap-2 mt-4">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        <i class="bi bi-check-lg"></i>
+                        ثبت بازخورد
+                    </button>
+
+                    <a
+                        href="{% url 'planner:index' %}"
+                        class="btn btn-secondary"
+                    >
+                        بازگشت
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+{% endblock %}

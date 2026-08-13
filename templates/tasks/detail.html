@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+جزئیات تکلیف
+{% endblock %}
+
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header d-flex justify-content-between">
+
+                <h5 class="mb-0">
+                    {{ task.title }}
+                </h5>
+
+
+                {% if task.status == "completed" %}
+
+                <span class="badge bg-success">
+                    انجام شده
+                </span>
+
+                {% else %}
+
+                <span class="badge bg-warning text-dark">
+                    در انتظار انجام
+                </span>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="card-body">
+
+                <p>
+
+                    <strong>
+                        درس:
+                    </strong>
+
+                    {{ task.course.name }}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        تاریخ تحویل:
+                    </strong>
+
+                    {% if task.due_date %}
+
+                    {{ task.due_date }}
+
+                    {% else %}
+
+                    بدون تاریخ
+
+                    {% endif %}
+
+                </p>
+
+
+                <hr>
+
+
+                <h6>
+                    توضیحات
+                </h6>
+
+
+                {% if task.description %}
+
+                <p class="text-muted">
+                    {{ task.description|linebreaksbr }}
+                </p>
+
+                {% else %}
+
+                <p class="text-muted">
+                    توضیحی برای این تکلیف ثبت نشده است.
+                </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="card-footer">
+
+                <div class="d-flex gap-2">
+
+                    <a href="{% url 'tasks:update' task.pk %}" class="btn btn-warning">
+
+                        <i class="bi bi-pencil"></i>
+
+                        ویرایش
+
+                    </a>
+
+
+                    <a href="{% url 'tasks:delete' task.pk %}" class="btn btn-danger">
+
+                        <i class="bi bi-trash"></i>
+
+                        حذف
+
+                    </a>
+
+
+                    <a href="{% url 'tasks:list' %}" class="btn btn-secondary">
+
+                        بازگشت
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    {{ title }}
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+
+                    {% if form.non_field_errors %}
+
+                    <div class="alert alert-danger">
+
+                        {{ form.non_field_errors }}
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            درس
+                        </label>
+
+                        {{ form.course }}
+
+                        {% if form.course.errors %}
+
+                        <div class="text-danger small mt-1">
+                            {{ form.course.errors }}
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            عنوان تکلیف
+                        </label>
+
+                        {{ form.title }}
+
+                        {% if form.title.errors %}
+
+                        <div class="text-danger small mt-1">
+                            {{ form.title.errors }}
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            توضیحات
+                        </label>
+
+                        {{ form.description }}
+
+                        {% if form.description.errors %}
+
+                        <div class="text-danger small mt-1">
+                            {{ form.description.errors }}
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            تاریخ تحویل
+                        </label>
+
+                        {{ form.due_date }}
+
+                        {% if form.due_date.errors %}
+
+                        <div class="text-danger small mt-1">
+                            {{ form.due_date.errors }}
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="mb-4">
+
+                        <label class="form-label">
+                            وضعیت
+                        </label>
+
+                        {{ form.status }}
+
+                        {% if form.status.errors %}
+
+                        <div class="text-danger small mt-1">
+                            {{ form.status.errors }}
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+                        <button type="submit" class="btn btn-primary">
+
+                            <i class="bi bi-check-lg"></i>
+
+                            ذخیره
+
+                        </button>
+
+
+                        <a href="{% url 'tasks:list' %}" class="btn btn-secondary">
+
+                            انصراف
+
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

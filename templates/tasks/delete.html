@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+حذف تکلیف
+{% endblock %}
+
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-6">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body text-center">
+
+                <i class="bi bi-exclamation-triangle text-danger fs-1"></i>
+
+
+                <h4 class="mt-3">
+                    حذف تکلیف
+                </h4>
+
+
+                <p class="text-muted">
+
+                    آیا مطمئن هستید که می‌خواهید تکلیف
+
+                    <strong>
+                        {{ task.title }}
+                    </strong>
+
+                    را حذف کنید؟
+
+                </p>
+
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+
+                    <button type="submit" class="btn btn-danger">
+
+                        <i class="bi bi-trash"></i>
+
+                        بله، حذف شود
+
+                    </button>
+
+
+                    <a href="{% url 'tasks:detail' task.pk %}" class="btn btn-secondary">
+
+                        انصراف
+
+                    </a>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
